@@ -3,55 +3,149 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BlockPorter - Вход / Регистрация</title>
+    <title>BlockPorter - Вход и регистрация</title>
     <link rel="stylesheet" href="style.css">
+    
+    <!-- Иконки Font Awesome (красивые иконки) -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js";
-        import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-auth.js";
+        import { 
+            getAuth, 
+            createUserWithEmailAndPassword, 
+            signInWithEmailAndPassword,
+            onAuthStateChanged
+        } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-auth.js";
 
-        const firebaseConfig = { /* тот же config, скопируй из index.html */ };
+        const firebaseConfig = {
+            apiKey: "AIzaSyDW9qARQxPZQOQPsehi3VkpG9dhHhnysO8",
+            authDomain: "crosshain-swap.firebaseapp.com",
+            projectId: "crosshain-swap",
+            storageBucket: "crosshain-swap.firebasestorage.app",
+            messagingSenderId: "686655052904",
+            appId: "1:686655052904:web:70a0de0063d9ce82f7afdd"
+        };
 
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
 
+        // Проверка, если уже залогинен — перенаправляем на dashboard
+        onAuthStateChanged(auth, user => {
+            if (user) {
+                window.location.href = 'dashboard.html';
+            }
+        });
+
         // Регистрация
-        document.getElementById('register').addEventListener('submit', e => {
+        document.getElementById('register-form')?.addEventListener('submit', e => {
             e.preventDefault();
             const email = e.target.email.value;
             const password = e.target.password.value;
+            
             createUserWithEmailAndPassword(auth, email, password)
-                .then(() => { alert('Регистрация успешна!'); window.location = 'index.html'; })
-                .catch(err => alert('Ошибка: ' + err.message));
+                .then(() => {
+                    alert('Регистрация успешна! Добро пожаловать в BlockPorter 🚀');
+                    window.location.href = 'dashboard.html';
+                })
+                .catch(err => {
+                    alert('Ошибка: ' + err.message);
+                });
         });
 
         // Вход
-        document.getElementById('login').addEventListener('submit', e => {
+        document.getElementById('login-form')?.addEventListener('submit', e => {
             e.preventDefault();
             const email = e.target.email.value;
             const password = e.target.password.value;
+            
             signInWithEmailAndPassword(auth, email, password)
-                .then(() => { alert('Вход успешен!'); window.location = 'index.html'; })
-                .catch(err => alert('Ошибка: ' + err.message));
+                .then(() => {
+                    alert('Добро пожаловать обратно!');
+                    window.location.href = 'dashboard.html';
+                })
+                .catch(err => {
+                    alert('Ошибка: ' + err.message);
+                });
         });
     </script>
 </head>
 <body>
-    <div class="container" style="max-width: 500px; margin: 100px auto;">
-        <h2 style="text-align:center;">Регистрация</h2>
-        <form id="register">
-            <input type="email" placeholder="Email" required style="width:100%; padding:10px; margin:10px 0;">
-            <input type="password" placeholder="Пароль (минимум 6 символов)" required style="width:100%; padding:10px; margin:10px 0;">
-            <button type="submit" class="btn" style="width:100%;">Зарегистрироваться</button>
-        </form>
+    <!-- Шапка как на всех страницах -->
+    <header>
+        <div class="container">
+            <h1><a href="index.html" style="color: var(--accent); text-decoration:none;">BlockPorter</a></h1>
+            <nav>
+                <a href="index.html">Главная</a>
+                <a href="about.html">О проекте</a>
+            </nav>
+        </div>
+    </header>
 
-        <h2 style="text-align:center; margin-top:50px;">Вход</h2>
-        <form id="login">
-            <input type="email" placeholder="Email" required style="width:100%; padding:10px; margin:10px 0;">
-            <input type="password" placeholder="Пароль" required style="width:100%; padding:10px; margin:10px 0;">
-            <button type="submit" class="btn" style="width:100%;">Войти</button>
-        </form>
+    <main class="container auth-container">
+        <div class="auth-card">
+            <div class="auth-header">
+                <i class="fas fa-exchange-alt auth-icon"></i>
+                <h2>Добро пожаловать в BlockPorter</h2>
+                <p>Быстрый и безопасный кроссчейн обмен</p>
+            </div>
 
-        <p style="text-align:center; margin-top:30px;"><a href="index.html">← На главную</a></p>
-    </div>
+            <!-- Блок выбора: Вход / Регистрация -->
+            <div class="auth-tabs">
+                <button class="tab-btn active" data-tab="login">Вход</button>
+                <button class="tab-btn" data-tab="register">Регистрация</button>
+            </div>
+
+            <!-- Форма входа -->
+            <form id="login-form" class="auth-form active">
+                <div class="input-group">
+                    <i class="fas fa-envelope"></i>
+                    <input type="email" placeholder="Email" required>
+                </div>
+                <div class="input-group">
+                    <i class="fas fa-lock"></i>
+                    <input type="password" placeholder="Пароль" required>
+                </div>
+                <button type="submit" class="btn auth-btn">Войти</button>
+            </form>
+
+            <!-- Форма регистрации -->
+            <form id="register-form" class="auth-form">
+                <div class="input-group">
+                    <i class="fas fa-envelope"></i>
+                    <input type="email" name="email" placeholder="Email" required>
+                </div>
+                <div class="input-group">
+                    <i class="fas fa-lock"></i>
+                    <input type="password" name="password" placeholder="Пароль (минимум 6 символов)" required minlength="6">
+                </div>
+                <button type="submit" class="btn auth-btn">Зарегистрироваться</button>
+            </form>
+
+            <p class="auth-footer-text">
+                Используя BlockPorter, вы соглашаетесь с <a href="#">условиями</a> и <a href="#">политикой конфиденциальности</a>
+            </p>
+        </div>
+    </main>
+
+    <script>
+        // Переключение между вкладками Вход / Регистрация
+        document.querySelectorAll('.tab-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                // Активная вкладка
+                document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+
+                // Показ формы
+                const tab = btn.getAttribute('data-tab');
+                document.querySelectorAll('.auth-form').forEach(form => {
+                    form.classList.remove('active');
+                    if (form.id === tab + '-form') {
+                        form.classList.add('active');
+                    }
+                });
+            });
+        });
+    </script>
 </body>
 </html>
