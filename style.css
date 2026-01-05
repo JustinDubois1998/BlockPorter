@@ -155,3 +155,24 @@ footer {
     color: #888;
     font-style: italic;
 }
+
+#connect-wallet {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+}
+
+#connect-wallet::before {
+    content: "";
+    width: 30px;
+    height: 30px;
+    background: url('https://upload.wikimedia.org/wikipedia/commons/3/36/MetaMask_Fox.svg') no-repeat center/contain;
+}
+
+#wallet-info {
+    background: var(--card);
+    padding: 20px;
+    border-radius: 15px;
+    margin-top: 30px;
+}
