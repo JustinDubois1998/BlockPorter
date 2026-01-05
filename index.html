@@ -23,14 +23,25 @@
         const auth = getAuth(app);
         
         // Проверка текущего пользователя
-        auth.onAuthStateChanged(user => {
-            const userInfo = document.getElementById('user-info');
-            if (user) {
-                userInfo.innerHTML = `Привет, ${user.email}! <a href="dashboard.html">Dashboard</a> | <button onclick="auth.signOut()">Выйти</button>`;
-            } else {
-                userInfo.innerHTML = '<a href="auth.html">Войти / Регистрация</a>';
-            }
+auth.onAuthStateChanged(user => {
+    const userInfo = document.getElementById('user-info');
+    if (user) {
+        userInfo.innerHTML = `
+            Привет, ${user.email.split('@')[0]}! 
+            <a href="dashboard.html">Dashboard</a> 
+            <button id="logout-btn" style="background:none;border:none;color:var(--accent);cursor:pointer;">Выйти</button>
+        `;
+        // Добавляем обработчик выхода
+        document.getElementById('logout-btn')?.addEventListener('click', () => {
+            auth.signOut().then(() => {
+                alert('Вы вышли из аккаунта');
+                window.location.href = 'index.html';
+            });
         });
+    } else {
+        userInfo.innerHTML = '<a href="auth.html">Войти / Регистрация</a>';
+    }
+});
     </script>
 </head>
 <body>
