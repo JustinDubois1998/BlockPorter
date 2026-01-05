@@ -717,4 +717,133 @@ header .logo img {
 
 .about-page { padding: 80px 0; text-align: center; }
 
+/* ====================== ПРОФИЛЬ ====================== */
 
+.profile-page {
+    display: flex;
+    justify-content: center;
+    padding: 60px 20px;
+    min-height: 80vh;
+}
+
+.profile-card {
+    background: var(--card);
+    max-width: 600px;
+    width: 100%;
+    border-radius: 24px;
+    padding: 50px 40px;
+    text-align: center;
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6);
+    animation: fadeInUp 0.8s ease-out forwards;
+    opacity: 0;
+    animation-delay: 0.2s;
+}
+
+.profile-card h2 {
+    font-size: 2.4rem;
+    margin-bottom: 30px;
+    color: var(--text);
+}
+
+.profile-card #connect-wallet {
+    width: 100%;
+    padding: 18px;
+    font-size: 1.3rem;
+    background: var(--accent);
+    color: #000;
+    border-radius: 50px;
+    font-weight: bold;
+    margin-bottom: 40px;
+}
+
+#profile-info {
+    margin-top: 30px;
+}
+
+#profile-info p {
+    font-size: 1.2rem;
+    margin: 20px 0;
+    color: var(--text);
+}
+
+#profile-info strong {
+    color: var(--accent);
+    font-weight: bold;
+}
+
+#full-address {
+    word-break: break-all;
+    background: #2a2a2a;
+    padding: 15px;
+    border-radius: 12px;
+    margin: 15px 0;
+    font-family: monospace;
+}
+
+#full-address + button {
+    margin-left: 10px;
+    padding: 8px 16px;
+    background: #333;
+    border: 1px solid #444;
+    color: white;
+    border-radius: 8px;
+    cursor: pointer;
+}
+
+#full-address + button:hover {
+    background: var(--accent);
+    color: #000;
+}
+
+.profile-card h3 {
+    margin: 40px 0 20px;
+    font-size: 1.6rem;
+    color: var(--accent);
+}
+
+#qr-code {
+    width: 200px;
+    height: 200px;
+    margin: 20px auto;
+    border: 10px solid #2a2a2a;
+    border-radius: 16px;
+    display: block;
+}
+
+#assets-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 15px;
+    margin-top: 20px;
+}
+
+.asset {
+    background: #2a2a2a;
+    padding: 20px;
+    border-radius: 16px;
+    font-size: 1.3rem;
+}
+
+.asset strong {
+    color: var(--accent);
+}
+
+/* Адаптивность для мобильных */
+@media (max-width: 768px) {
+    .profile-card {
+        padding: 40px 20px;
+    }
+    
+    .profile-card h2 {
+        font-size: 2rem;
+    }
+    
+    #assets-list {
+        grid-template-columns: 1fr;
+    }
+    
+    #qr-code {
+        width: 180px;
+        height: 180px;
+    }
+}
