@@ -1,0 +1,100 @@
+:root {
+    --bg: #121212;
+    --text: #e0e0e0;
+    --accent: #00ff9d;
+    --card: #1e1e1e;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Segoe UI', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.6;
+}
+
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 20px;
+}
+
+header {
+    background: #0a0a0a;
+    padding: 20px 0;
+    border-bottom: 1px solid #333;
+}
+
+header h1 {
+    display: inline-block;
+    color: var(--accent);
+}
+
+nav {
+    float: right;
+    margin-top: 10px;
+}
+
+nav a, nav span {
+    color: var(--text);
+    margin-left: 20px;
+    text-decoration: none;
+}
+
+nav a:hover {
+    color: var(--accent);
+}
+
+.hero {
+    text-align: center;
+    padding: 100px 0;
+}
+
+.hero h2 {
+    font-size: 3rem;
+    margin-bottom: 20px;
+}
+
+.btn {
+    display: inline-block;
+    background: var(--accent);
+    color: #000;
+    padding: 15px 30px;
+    border-radius: 50px;
+    text-decoration: none;
+    font-weight: bold;
+    margin-top: 20px;
+}
+
+.features {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 30px;
+    padding: 50px 0;
+}
+
+.feature {
+    background: var(--card);
+    padding: 30px;
+    border-radius: 10px;
+    text-align: center;
+}
+
+footer {
+    background: #0a0a0a;
+    padding: 20px 0;
+    text-align: center;
+    margin-top: 50px;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    header h1, nav { display: block; float: none; text-align: center; }
+    nav { margin-top: 20px; }
+    .hero h2 { font-size: 2rem; }
+}
