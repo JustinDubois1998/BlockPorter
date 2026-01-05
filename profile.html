@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BlockPorter - Профиль</title>
+    <link rel="stylesheet" href="style.css">
+    <script type="module">
+        // Тот же MetaMask код
+        // При подключении: показываем адрес как имя пользователя
+        // Баланс всех активов (заглушка + ETH реальный)
+        // QR код для пополнения (генерируем по адресу)
+        async function updateProfile() {
+            if (currentAccount) {
+                document.getElementById('username').textContent = currentAccount.slice(0,6) + '...' + currentAccount.slice(-4);
+                document.getElementById('full-address').textContent = currentAccount;
+                // QR код
+                const qr = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${currentAccount}`;
+                document.getElementById('qr-code').src = qr;
+                // Баланс активов (пример)
+                document.getElementById('assets-list').innerHTML = `
+                    <div class="asset">ETH: ${ (await getBalance()).toFixed(4) }</div>
+                    <div class="asset">USDC: 0.00 (заглушка)</div>
+                    <div class="asset">BNB: 0.00</div>
+                `;
+            }
+        }
+    </script>
+</head>
+<body>
+    <header><!-- Та же шапка --></header>
+
+    <main class="container profile-page">
+        <div class="profile-card">
+            <h2>Личный кабинет</h2>
+            <button id="connect-wallet">Подключить / Войти через кошелёк</button>
+            
+            <div id="profile-info" style="display:none;">
+                <p>Имя пользователя: <strong id="username">—</strong></p>
+                <p>Адрес: <strong id="full-address">—</strong> <button onclick="navigator.clipboard.writeText(currentAccount)">Копировать</button></p>
+                
+                <h3>Пополнить баланс</h3>
+                <img id="qr-code" alt="QR для пополнения">
+                <p>Сканируйте QR или переведите на адрес выше</p>
+                
+                <h3>Ваши активы</h3>
+                <div id="assets-list">Подключите кошелёк</div>
+            </div>
+        </div>
+    </main>
+</body>
+</html>
