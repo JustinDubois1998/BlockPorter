@@ -3,209 +3,27 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BlockPorter - Вход и регистрация</title>
+    <title>BlockPorter - О проекте</title>
     <link rel="stylesheet" href="style.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
-    <link rel="icon" href="favicon.png" type="image/png">
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js";
-        import { 
-            getAuth, 
-            createUserWithEmailAndPassword, 
-            signInWithEmailAndPassword,
-            GoogleAuthProvider,
-            signInWithPopup,
-            sendPasswordResetEmail,
-            onAuthStateChanged
-        } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-auth.js";
-
-        const firebaseConfig = {
-            apiKey: "AIzaSyDW9qARQxPZQOQPsehi3VkpG9dhHhnysO8",
-            authDomain: "crosshain-swap.firebaseapp.com",
-            projectId: "crosshain-swap",
-            storageBucket: "crosshain-swap.firebasestorage.app",
-            messagingSenderId: "686655052904",
-            appId: "1:686655052904:web:70a0de0063d9ce82f7afdd"
-        };
-
-        const app = initializeApp(firebaseConfig);
-        const auth = getAuth(app);
-        const provider = new GoogleAuthProvider();
-
-        onAuthStateChanged(auth, user => {
-            if (user) window.location.href = 'dashboard.html';
-        });
-
-        function showLoading(show) {
-            document.getElementById('loading-spinner').style.display = show ? 'flex' : 'none';
-        }
-
-        // Регистрация
-        document.getElementById('register-form').addEventListener('submit', e => {
-            e.preventDefault();
-            const email = e.target.email.value;
-            const password = e.target.password.value;
-            showLoading(true);
-            createUserWithEmailAndPassword(auth, email, password)
-                .then(() => window.location.href = 'dashboard.html')
-                .catch(err => alert('Ошибка: ' + err.message))
-                .finally(() => showLoading(false));
-        });
-
-        // Вход
-        document.getElementById('login-form').addEventListener('submit', e => {
-            e.preventDefault();
-            const email = e.target.email.value;
-            const password = e.target.password.value;
-            showLoading(true);
-            signInWithEmailAndPassword(auth, email, password)
-                .then(() => window.location.href = 'dashboard.html')
-                .catch(err => alert('Ошибка: ' + err.message))
-                .finally(() => showLoading(false));
-        });
-
-        // Google вход (для обеих форм)
-        document.querySelectorAll('.google-btn').forEach(btn => {
-            btn.addEventListener('click', () => {
-                showLoading(true);
-                signInWithPopup(auth, provider)
-                    .then(() => window.location.href = 'dashboard.html')
-                    .catch(err => alert('Ошибка Google: ' + err.message))
-                    .finally(() => showLoading(false));
-            });
-        });
-
-        // Сброс пароля
-        document.getElementById('reset-form').addEventListener('submit', e => {
-            e.preventDefault();
-            const email = e.target.resetEmail.value;
-            showLoading(true);
-            sendPasswordResetEmail(auth, email)
-                .then(() => alert('Письмо отправлено на ' + email))
-                .catch(err => alert('Ошибка: ' + err.message))
-                .finally(() => {
-                    showLoading(false);
-                    document.getElementById('reset-modal').style.display = 'none';
-                });
-        });
-    </script>
 </head>
 <body>
     <header>
         <div class="container">
-            <a href="index.html" class="logo">
-                <img src="logo.svg" alt="BlockPorter" height="40">
-            </a>
-        <nav>
-            <a href="index.html">Главная</a>
-            <a href="dashboard.html">Обмен</a>
-            <a href="about.html">О проекте</a>
-            <span id="user-info"><a href="auth.html">Войти / Регистрация</a></span>
-        </nav>
-
+            <a href="index.html" class="logo"><img src="logo.svg" alt="BlockPorter" height="40"></a>
+            <nav>
+                <a href="index.html">Главная</a>
+                <a href="dashboard.html">Обмен</a>
+                <a href="profile.html">Профиль</a>
+                <a href="about.html">О проекте</a>
+            </nav>
         </div>
     </header>
 
-    <main class="auth-main">
-        <div class="auth-card">
-            <div class="auth-icon-big">
-                <i class="fas fa-exchange-alt"></i>
-            </div>
-            <h2>Добро пожаловать в BlockPorter</h2>
-            <p class="auth-subtitle">Кроссчейн обмен без границ</p>
-
-            <div class="auth-tabs">
-                <button class="tab-btn active" data-tab="login">Вход</button>
-                <button class="tab-btn" data-tab="register">Регистрация</button>
-            </div>
-
-            <!-- Форма входа -->
-            <form id="login-form" class="auth-form active">
-                <div class="input-group">
-                    <i class="fas fa-envelope"></i>
-                    <input type="email" placeholder="Email" required>
-                </div>
-                <div class="input-group">
-                    <i class="fas fa-lock"></i>
-                    <input type="password" placeholder="Пароль" required>
-                </div>
-                <a href="#" id="forgot-password" class="forgot-link">Забыли пароль?</a>
-
-                <button type="submit" class="btn auth-main-btn">Войти</button>
-
-                <div class="divider"><span>или</span></div>
-
-                <button type="button" class="btn google-btn">
-                    <i class="fab fa-google"></i> Войти через Google
-                </button>
-            </form>
-
-            <!-- Форма регистрации -->
-            <form id="register-form" class="auth-form">
-                <div class="input-group">
-                    <i class="fas fa-envelope"></i>
-                    <input type="email" name="email" placeholder="Email" required>
-                </div>
-                <div class="input-group">
-                    <i class="fas fa-lock"></i>
-                    <input type="password" name="password" placeholder="Пароль (мин. 6 символов)" required minlength="6">
-                </div>
-
-                <button type="submit" class="btn auth-main-btn">Зарегистрироваться</button>
-
-                <div class="divider"><span>или</span></div>
-
-                <button type="button" class="btn google-btn">
-                    <i class="fab fa-google"></i> Через Google
-                </button>
-            </form>
-        </div>
-
-        <!-- Модалка сброса -->
-        <div id="reset-modal" class="modal">
-            <div class="modal-content">
-                <span class="close">&times;</span>
-                <h3>Восстановление пароля</h3>
-                <form id="reset-form">
-                    <div class="input-group">
-                        <i class="fas fa-envelope"></i>
-                        <input type="email" name="resetEmail" placeholder="Ваш email" required>
-                    </div>
-                    <button type="submit" class="btn auth-main-btn">Отправить</button>
-                </form>
-            </div>
-        </div>
-
-        <!-- Спиннер -->
-        <div id="loading-spinner" class="spinner">
-            <div class="spinner-circle"></div>
-        </div>
+    <main class="container about-page">
+        <h2>О BlockPorter</h2>
+        <p>BlockPorter — современная платформа для кроссчейн обмена криптовалютой. Без посредников, быстро и безопасно.</p>
+        <p>Мы поддерживаем Ethereum, BSC, Polygon, Arbitrum и скоро добавим больше сетей.</p>
+        <p>Подключите MetaMask и начните обмен!</p>
     </main>
-
-    <script>
-        // Переключение вкладок
-        document.querySelectorAll('.tab-btn').forEach(btn => {
-            btn.addEventListener('click', () => {
-                document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-                btn.classList.add('active');
-                document.querySelectorAll('.auth-form').forEach(f => f.classList.remove('active'));
-                document.getElementById(btn.dataset.tab + '-form').classList.add('active');
-            });
-        });
-
-        // Модалка
-        document.getElementById('forgot-password').onclick = e => {
-            e.preventDefault();
-            document.getElementById('reset-modal').style.display = 'flex';
-        };
-        document.querySelector('.close').onclick = () => {
-            document.getElementById('reset-modal').style.display = 'none';
-        };
-        window.onclick = e => {
-            if (e.target === document.getElementById('reset-modal')) {
-                document.getElementById('reset-modal').style.display = 'none';
-            }
-        };
-    </script>
 </body>
 </html>
