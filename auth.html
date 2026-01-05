@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BlockPorter - Вход / Регистрация</title>
+    <link rel="stylesheet" href="style.css">
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js";
+        import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-auth.js";
+
+        const firebaseConfig = { /* тот же config, скопируй из index.html */ };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+
+        // Регистрация
+        document.getElementById('register').addEventListener('submit', e => {
+            e.preventDefault();
+            const email = e.target.email.value;
+            const password = e.target.password.value;
+            createUserWithEmailAndPassword(auth, email, password)
+                .then(() => { alert('Регистрация успешна!'); window.location = 'index.html'; })
+                .catch(err => alert('Ошибка: ' + err.message));
+        });
+
+        // Вход
+        document.getElementById('login').addEventListener('submit', e => {
+            e.preventDefault();
+            const email = e.target.email.value;
+            const password = e.target.password.value;
+            signInWithEmailAndPassword(auth, email, password)
+                .then(() => { alert('Вход успешен!'); window.location = 'index.html'; })
+                .catch(err => alert('Ошибка: ' + err.message));
+        });
+    </script>
+</head>
+<body>
+    <div class="container" style="max-width: 500px; margin: 100px auto;">
+        <h2 style="text-align:center;">Регистрация</h2>
+        <form id="register">
+            <input type="email" placeholder="Email" required style="width:100%; padding:10px; margin:10px 0;">
+            <input type="password" placeholder="Пароль (минимум 6 символов)" required style="width:100%; padding:10px; margin:10px 0;">
+            <button type="submit" class="btn" style="width:100%;">Зарегистрироваться</button>
+        </form>
+
+        <h2 style="text-align:center; margin-top:50px;">Вход</h2>
+        <form id="login">
+            <input type="email" placeholder="Email" required style="width:100%; padding:10px; margin:10px 0;">
+            <input type="password" placeholder="Пароль" required style="width:100%; padding:10px; margin:10px 0;">
+            <button type="submit" class="btn" style="width:100%;">Войти</button>
+        </form>
+
+        <p style="text-align:center; margin-top:30px;"><a href="index.html">← На главную</a></p>
+    </div>
+</body>
+</html>
