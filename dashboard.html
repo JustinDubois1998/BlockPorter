@@ -5,6 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>BlockPorter - Кроссчейн обмен</title>
     <link rel="stylesheet" href="style.css">
+    
+    <!-- Firebase Auth (защита страницы) -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js";
         import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-auth.js";
@@ -23,10 +25,8 @@
 
         onAuthStateChanged(auth, user => {
             if (!user) {
-                alert('Для обмена нужно войти в аккаунт');
+                alert('Войдите в аккаунт, чтобы использовать обмен');
                 window.location.href = 'auth.html';
-            } else {
-                document.getElementById('user-email').textContent = user.email.split('@')[0];
             }
         });
     </script>
@@ -39,7 +39,7 @@
                 <a href="index.html">Главная</a>
                 <a href="dashboard.html">Обмен</a>
                 <a href="about.html">О проекте</a>
-                <span id="user-info">Привет, <span id="user-email">гость</span>! <button id="logout-btn">Выйти</button></span>
+                <span id="user-info"><a href="auth.html">Войти</a></span>
             </nav>
         </div>
     </header>
@@ -48,18 +48,20 @@
         <section class="swap-box">
             <h2>Кроссчейн обмен</h2>
 
-            <div id="wallet-section" style="text-align:center; margin-bottom:30px;">
-                <button id="connect-wallet" class="btn swap-btn">
+            <!-- Блок подключения MetaMask -->
+            <div class="wallet-connect">
+                <button id="connect-wallet" class="btn">
                     <span id="connect-text">Подключить MetaMask</span>
                 </button>
 
-                <div id="wallet-info" style="display:none; margin-top:20px;">
-                    <p>Сеть: <strong id="network-name">Неизвестно</strong></p>
-                    <p>Адрес: <strong id="wallet-address"></strong></p>
-                    <p>Баланс: <strong id="wallet-balance">0</strong> <span id="from-token">ETH</span></p>
+                <div id="wallet-info" class="wallet-info-card">
+                    <p>Сеть: <strong id="network-name">—</strong></p>
+                    <p>Адрес: <strong id="wallet-address">—</strong></p>
+                    <p>Баланс: <strong id="wallet-balance">0</strong> <span id="balance-token">ETH</span></p>
                 </div>
             </div>
 
+            <!-- Форма обмена -->
             <div class="swap-form">
                 <div class="swap-row">
                     <div class="token-select">
@@ -81,7 +83,7 @@
                     </div>
                 </div>
 
-                <div class="swap-arrow" id="swap-arrow">↓</div>
+                <div class="swap-arrow">↓</div>
 
                 <div class="swap-row">
                     <div class="token-select">
@@ -103,9 +105,9 @@
                     </div>
                 </div>
 
-                <div class="swap-info" id="swap-info" style="display:none;">
-                    <p>Курс: 1 <span id="rate-from">ETH</span> ≈ <span id="rate">0.99</span> <span id="rate-to">BNB</span></p>
-                    <p>Комиссия: ~0.1%</p>
+                <div id="rate-info" class="rate-info">
+                    <p>Курс: 1 <span id="rate-from">ETH</span> ≈ <span id="rate-value">0.9900</span> <span id="rate-to">BNB</span></p>
+                    <p>Комиссия сети: ~0.1–0.3%</p>
                 </div>
 
                 <button id="swap-button" class="btn swap-btn" disabled>Обменять</button>
@@ -115,28 +117,33 @@
 
     <footer>
         <div class="container">
-            <p>&copy; 2026 BlockPorter — Кроссчейн будущего</p>
+            <p>&copy; 2026 BlockPorter</p>
         </div>
     </footer>
 
+    <!-- Основной скрипт MetaMask и логика обмена -->
     <script type="module">
-        // MetaMask логика
+        // Переменные
         let currentAccount = null;
         let currentChainId = null;
 
-        const connectButton = document.getElementById('connect-wallet');
+        // Элементы
+        const connectBtn = document.getElementById('connect-wallet');
         const connectText = document.getElementById('connect-text');
         const walletInfo = document.getElementById('wallet-info');
+        const networkName = document.getElementById('network-name');
         const walletAddress = document.getElementById('wallet-address');
         const walletBalance = document.getElementById('wallet-balance');
-        const networkName = document.getElementById('network-name');
-        const fromTokenSpan = document.getElementById('from-token');
 
         const fromAmount = document.getElementById('from-amount');
         const toAmount = document.getElementById('to-amount');
         const swapButton = document.getElementById('swap-button');
-        const swapInfo = document.getElementById('swap-info');
+        const rateInfo = document.getElementById('rate-info');
+        const rateValue = document.getElementById('rate-value');
+        const rateFrom = document.getElementById('rate-from');
+        const rateTo = document.getElementById('rate-to');
 
+        // Названия сетей
         const chainNames = {
             '1': 'Ethereum Mainnet',
             '56': 'BSC',
@@ -144,9 +151,11 @@
             '42161': 'Arbitrum One'
         };
 
+        // Подключение кошелька
         async function connectWallet() {
             if (!window.ethereum) {
-                alert('Установи MetaMask → https://metamask.io');
+                alert('MetaMask не найден! Установи: https://metamask.io');
+                window.open('https://metamask.io/download/', '_blank');
                 return;
             }
 
@@ -156,63 +165,68 @@
                 currentChainId = await ethereum.request({ method: 'eth_chainId' });
                 currentChainId = parseInt(currentChainId, 16).toString();
 
-                await updateWalletUI();
+                await updateWalletDisplay();
                 connectText.textContent = 'Подключено';
-                connectButton.disabled = true;
+                connectBtn.disabled = true;
                 walletInfo.style.display = 'block';
                 swapButton.disabled = false;
-            } catch (err) {
-                alert('Ошибка: ' + err.message);
+            } catch (error) {
+                alert('Ошибка подключения: ' + error.message);
             }
         }
 
-        async function updateWalletUI() {
-            walletAddress.textContent = currentAccount.slice(0,6) + '...' + currentAccount.slice(-4);
+        // Обновление информации о кошельке
+        async function updateWalletDisplay() {
+            walletAddress.textContent = currentAccount.slice(0, 6) + '...' + currentAccount.slice(-4);
             networkName.textContent = chainNames[currentChainId] || 'Неизвестная сеть';
 
-            const balance = await ethereum.request({
-                method: 'eth_getBalance',
-                params: [currentAccount, 'latest']
-            });
+            const balance = await ethereum.request({ method: 'eth_getBalance', params: [currentAccount, 'latest'] });
             const ethBalance = parseInt(balance, 16) / 1e18;
             walletBalance.textContent = ethBalance.toFixed(4);
         }
 
-        connectButton.addEventListener('click', connectWallet);
+        // События MetaMask
+        connectBtn.addEventListener('click', connectWallet);
 
-        // Авто-подключение
         if (window.ethereum) {
             ethereum.on('accountsChanged', () => location.reload());
             ethereum.on('chainChanged', () => location.reload());
 
+            // Автоподключение, если уже есть разрешение
             ethereum.request({ method: 'eth_accounts' }).then(accounts => {
                 if (accounts.length > 0) connectWallet();
             });
         }
 
-        // Расчёт получаемой суммы (заглушка)
+        // Расчёт получаемой суммы (имитация)
         fromAmount.addEventListener('input', () => {
             const amount = parseFloat(fromAmount.value) || 0;
-            const fakeRate = 0.99 - Math.random() * 0.02; // небольшая вариация
+            const fakeRate = 0.985 + Math.random() * 0.02; // от 0.985 до 1.005
             toAmount.value = (amount * fakeRate).toFixed(6);
 
             if (amount > 0) {
-                swapInfo.style.display = 'block';
-                document.getElementById('rate').textContent = fakeRate.toFixed(4);
-                document.getElementById('rate-from').textContent = document.getElementById('from-token').value;
-                document.getElementById('rate-to').textContent = document.getElementById('to-token').value;
+                rateInfo.style.display = 'block';
+                rateValue.textContent = fakeRate.toFixed(4);
+                rateFrom.textContent = document.getElementById('from-token').value;
+                rateTo.textContent = document.getElementById('to-token').value;
             } else {
-                swapInfo.style.display = 'none';
+                rateInfo.style.display = 'none';
             }
         });
 
-        // Кнопка обмена (симуляция)
+        // Кнопка обмена — симуляция
         swapButton.addEventListener('click', () => {
-            if (!currentAccount) {
-                alert('Сначала подключи кошелёк');
-                return;
-            }
-            alert(`Симуляция обмена:\nОтправка ${fromAmount.value} ${document.getElementById('from-token').value}\nПолучение ${toAmount.value} ${document.getElementById('to-token').value}\n\nВ реальности здесь будет транзакция через бридж!`);
+            const fromAmt = fromAmount.value || '0';
+            const toAmt = toAmount.value || '0';
+            const fromTok = document.getElementById('from-token').value;
+            const toTok = document.getElementById('to-token').value;
+            const fromNet = document.querySelector('#from-chain option:checked').textContent;
+            const toNet = document.querySelector('#to-chain option:checked').textContent;
+
+            alert(`Симуляция обмена выполнена!\n\n` +
+                  `Отправлено: ${fromAmt} ${fromTok} из ${fromNet}\n` +
+                  `Получено: ${toAmt} ${toTok} в ${toNet}\n\n` +
+                  `В реальном приложении здесь будет транзакция через кроссчейн-бридж.`);
         });
     </script>
 </body>
