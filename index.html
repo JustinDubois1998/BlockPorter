@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BlockPorter - Кроссчейн обмен</title>
+    <link rel="stylesheet" href="style.css">
+    <!-- Firebase SDK (последняя версия 9+ modular) -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js";
+        import { getAuth } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-auth.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyDW9qARQxPZQOQPsehi3VkpG9dhHhnysO8",
+            authDomain: "crosshain-swap.firebaseapp.com",
+            projectId: "crosshain-swap",
+            storageBucket: "crosshain-swap.firebasestorage.app",
+            messagingSenderId: "686655052904",
+            appId: "1:686655052904:web:70a0de0063d9ce82f7afdd"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        
+        // Проверка текущего пользователя
+        auth.onAuthStateChanged(user => {
+            const userInfo = document.getElementById('user-info');
+            if (user) {
+                userInfo.innerHTML = `Привет, ${user.email}! <a href="dashboard.html">Dashboard</a> | <button onclick="auth.signOut()">Выйти</button>`;
+            } else {
+                userInfo.innerHTML = '<a href="auth.html">Войти / Регистрация</a>';
+            }
+        });
+    </script>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <h1>BlockPorter</h1>
+            <nav>
+                <a href="index.html">Главная</a>
+                <a href="dashboard.html">Обмен</a>
+                <span id="user-info"></span>
+            </nav>
+        </div>
+    </header>
+
+    <main class="container">
+        <section class="hero">
+            <h2>Быстрый и безопасный кроссчейн обмен криптовалюты</h2>
+            <p>Обменивай токены между блокчейнами без посредников.</p>
+            <a href="dashboard.html" class="btn">Начать обмен</a>
+        </section>
+
+        <section class="features">
+            <div class="feature">
+                <h3>Молниеносно</h3>
+                <p>Обмен за секунды</p>
+            </div>
+            <div class="feature">
+                <h3>Безопасно</h3>
+                <p>Децентрализованно</p>
+            </div>
+            <div class="feature">
+                <h3>Низкие комиссии</h3>
+                <p>Минимальные затраты</p>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <div class="container">
+            <p>&copy; 2026 BlockPorter</p>
+        </div>
+    </footer>
+</body>
+</html>
