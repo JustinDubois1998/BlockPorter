@@ -5,6 +5,23 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>BlockPorter - Dashboard</title>
     <link rel="stylesheet" href="style.css">
+    
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js";
+    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-auth.js";
+
+    const firebaseConfig = { /* вставь свой config */ };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+
+    onAuthStateChanged(auth, user => {
+        if (!user) {
+            alert('Для доступа к Dashboard нужно войти в аккаунт');
+            window.location.href = 'auth.html';
+        }
+    });
+</script>
 </head>
 <body>
 <header>
@@ -18,10 +35,40 @@
     </div>
 </header>
 
-    <main class="container">
-        <h2>Добро пожаловать в Dashboard</h2>
-        <p>Здесь будет форма кроссчейн обмена (другой человек добавит логику).</p>
-        <p>Ты должен быть авторизован, чтобы видеть эту страницу.</p>
-    </main>
+<main class="container">
+    <section class="swap-box">
+        <h2>Кроссчейн обмен</h2>
+        <div class="swap-form">
+            <div class="swap-row">
+                <div class="token-select">
+                    <label>Отдаёте</label>
+                    <select>
+                        <option>ETH (Ethereum)</option>
+                        <option>BNB (BSC)</option>
+                        <option>SOL (Solana)</option>
+                    </select>
+                    <input type="number" placeholder="0.0" class="amount">
+                </div>
+            </div>
+
+            <div class="swap-arrow">↓</div>
+
+            <div class="swap-row">
+                <div class="token-select">
+                    <label>Получаете</label>
+                    <select>
+                        <option>BNB (BSC)</option>
+                        <option>ETH (Ethereum)</option>
+                        <option>SOL (Solana)</option>
+                    </select>
+                    <input type="number" placeholder="0.0" class="amount" disabled>
+                </div>
+            </div>
+
+            <button class="btn swap-btn">Подключить кошелёк</button>
+            <p class="info">Функционал обмена в разработке. Скоро здесь будет подключение MetaMask и реальный своп.</p>
+        </div>
+    </section>
+</main>
 </body>
 </html>
