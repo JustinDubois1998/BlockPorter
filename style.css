@@ -214,3 +214,82 @@ footer {
 #swap-arrow:hover {
     color: white;
 }
+
+.wallet-connect {
+    text-align: center;
+    margin-bottom: 40px;
+}
+
+.wallet-info-card {
+    display: none;
+    background: var(--card);
+    padding: 20px;
+    border-radius: 15px;
+    margin-top: 20px;
+    font-size: 1.1rem;
+}
+
+.select-group {
+    display: flex;
+    gap: 10px;
+    margin: 10px 0;
+}
+
+.select-group select {
+    flex: 1;
+    padding: 14px;
+    background: #2a2a2a;
+    border: none;
+    border-radius: 10px;
+    color: white;
+    font-size: 1rem;
+}
+
+.token-select input {
+    width: 100%;
+    padding: 18px;
+    margin-top: 10px;
+    background: #333;
+    border: none;
+    border-radius: 12px;
+    color: white;
+    font-size: 1.4rem;
+    text-align: center;
+}
+
+.swap-arrow {
+    text-align: center;
+    font-size: 3rem;
+    color: var(--accent);
+    margin: 20px 0;
+}
+
+.rate-info {
+    display: none;
+    background: #2a2a2a;
+    padding: 15px;
+    border-radius: 12px;
+    margin: 25px 0;
+    text-align: center;
+    color: #aaa;
+}
+
+.swap-btn {
+    width: 100%;
+    padding: 20px;
+    font-size: 1.4rem;
+    margin-top: 10px;
+}
+
+/* Адаптивность для мобильных */
+@media (max-width: 768px) {
+    .select-group {
+        flex-direction: column;
+    }
+    .swap-box {
+        padding: 20px;
+    }
+    h2 {
+        font-size: 1.8rem;
+    }
+}
