@@ -32,37 +32,28 @@
         const auth = getAuth(app);
         const provider = new GoogleAuthProvider();
 
-        // Если уже залогинен — на dashboard
         onAuthStateChanged(auth, user => {
-            if (user) {
-                window.location.href = 'dashboard.html';
-            }
+            if (user) window.location.href = 'dashboard.html';
         });
 
-        // Показ/скрытие загрузки
         function showLoading(show) {
-            document.getElementById('loading-spinner').style.display = show ? 'block' : 'none';
+            document.getElementById('loading-spinner').style.display = show ? 'flex' : 'none';
         }
 
-        // Регистрация email/password
-        document.getElementById('register-form')?.addEventListener('submit', e => {
+        // Регистрация
+        document.getElementById('register-form').addEventListener('submit', e => {
             e.preventDefault();
             const email = e.target.email.value;
             const password = e.target.password.value;
             showLoading(true);
             createUserWithEmailAndPassword(auth, email, password)
-                .then(() => {
-                    alert('Регистрация успешна! 🚀');
-                    window.location.href = 'dashboard.html';
-                })
-                .catch(err => {
-                    alert('Ошибка: ' + err.message);
-                })
+                .then(() => window.location.href = 'dashboard.html')
+                .catch(err => alert('Ошибка: ' + err.message))
                 .finally(() => showLoading(false));
         });
 
-        // Вход email/password
-        document.getElementById('login-form')?.addEventListener('submit', e => {
+        // Вход
+        document.getElementById('login-form').addEventListener('submit', e => {
             e.preventDefault();
             const email = e.target.email.value;
             const password = e.target.password.value;
@@ -73,22 +64,24 @@
                 .finally(() => showLoading(false));
         });
 
-        // Вход через Google
-        document.getElementById('google-btn')?.addEventListener('click', () => {
-            showLoading(true);
-            signInWithPopup(auth, provider)
-                .then(() => window.location.href = 'dashboard.html')
-                .catch(err => alert('Ошибка Google входа: ' + err.message))
-                .finally(() => showLoading(false));
+        // Google вход (для обеих форм)
+        document.querySelectorAll('.google-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                showLoading(true);
+                signInWithPopup(auth, provider)
+                    .then(() => window.location.href = 'dashboard.html')
+                    .catch(err => alert('Ошибка Google: ' + err.message))
+                    .finally(() => showLoading(false));
+            });
         });
 
-        // Восстановление пароля
-        document.getElementById('reset-form')?.addEventListener('submit', e => {
+        // Сброс пароля
+        document.getElementById('reset-form').addEventListener('submit', e => {
             e.preventDefault();
             const email = e.target.resetEmail.value;
             showLoading(true);
             sendPasswordResetEmail(auth, email)
-                .then(() => alert('Письмо для сброса пароля отправлено на ' + email))
+                .then(() => alert('Письмо отправлено на ' + email))
                 .catch(err => alert('Ошибка: ' + err.message))
                 .finally(() => {
                     showLoading(false);
@@ -98,7 +91,6 @@
     </script>
 </head>
 <body>
-    <!-- Единая шапка с новым логотипом -->
     <header>
         <div class="container">
             <a href="index.html" class="logo">
@@ -110,23 +102,24 @@
             <a href="about.html">О проекте</a>
             <span id="user-info"><a href="auth.html">Войти / Регистрация</a></span>
         </nav>
+
         </div>
     </header>
 
-    <main class="container auth-container">
+    <main class="auth-main">
         <div class="auth-card">
-            <div class="auth-header">
-                <i class="fas fa-portal-enter auth-icon"></i> <!-- Можно заменить на fa-exchange-alt -->
-                <h2>Добро пожаловать</h2>
-                <p>Кроссчейн обмен без границ</p>
+            <div class="auth-icon-big">
+                <i class="fas fa-exchange-alt"></i>
             </div>
+            <h2>Добро пожаловать в BlockPorter</h2>
+            <p class="auth-subtitle">Кроссчейн обмен без границ</p>
 
             <div class="auth-tabs">
                 <button class="tab-btn active" data-tab="login">Вход</button>
                 <button class="tab-btn" data-tab="register">Регистрация</button>
             </div>
 
-            <!-- Вход -->
+            <!-- Форма входа -->
             <form id="login-form" class="auth-form active">
                 <div class="input-group">
                     <i class="fas fa-envelope"></i>
@@ -137,16 +130,17 @@
                     <input type="password" placeholder="Пароль" required>
                 </div>
                 <a href="#" id="forgot-password" class="forgot-link">Забыли пароль?</a>
-                <button type="submit" class="btn auth-btn">Войти</button>
 
-                <div class="divider">или</div>
+                <button type="submit" class="btn auth-main-btn">Войти</button>
 
-                <button type="button" id="google-btn" class="btn google-btn">
+                <div class="divider"><span>или</span></div>
+
+                <button type="button" class="btn google-btn">
                     <i class="fab fa-google"></i> Войти через Google
                 </button>
             </form>
 
-            <!-- Регистрация -->
+            <!-- Форма регистрации -->
             <form id="register-form" class="auth-form">
                 <div class="input-group">
                     <i class="fas fa-envelope"></i>
@@ -156,17 +150,18 @@
                     <i class="fas fa-lock"></i>
                     <input type="password" name="password" placeholder="Пароль (мин. 6 символов)" required minlength="6">
                 </div>
-                <button type="submit" class="btn auth-btn">Зарегистрироваться</button>
 
-                <div class="divider">или</div>
+                <button type="submit" class="btn auth-main-btn">Зарегистрироваться</button>
 
-                <button type="button" id="google-btn-reg" class="btn google-btn">
+                <div class="divider"><span>или</span></div>
+
+                <button type="button" class="btn google-btn">
                     <i class="fab fa-google"></i> Через Google
                 </button>
             </form>
         </div>
 
-        <!-- Модалка восстановления пароля -->
+        <!-- Модалка сброса -->
         <div id="reset-modal" class="modal">
             <div class="modal-content">
                 <span class="close">&times;</span>
@@ -176,12 +171,12 @@
                         <i class="fas fa-envelope"></i>
                         <input type="email" name="resetEmail" placeholder="Ваш email" required>
                     </div>
-                    <button type="submit" class="btn auth-btn">Отправить письмо</button>
+                    <button type="submit" class="btn auth-main-btn">Отправить</button>
                 </form>
             </div>
         </div>
 
-        <!-- Анимация загрузки -->
+        <!-- Спиннер -->
         <div id="loading-spinner" class="spinner">
             <div class="spinner-circle"></div>
         </div>
@@ -193,27 +188,24 @@
             btn.addEventListener('click', () => {
                 document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
                 btn.classList.add('active');
-                document.querySelectorAll('.auth-form').forEach(form => form.classList.remove('active'));
+                document.querySelectorAll('.auth-form').forEach(f => f.classList.remove('active'));
                 document.getElementById(btn.dataset.tab + '-form').classList.add('active');
             });
         });
 
-        // Google кнопка в регистрации (дублируем)
-        document.getElementById('google-btn-reg')?.addEventListener('click', () => document.getElementById('google-btn').click());
-
-        // Модалка сброса пароля
-        document.getElementById('forgot-password').addEventListener('click', e => {
+        // Модалка
+        document.getElementById('forgot-password').onclick = e => {
             e.preventDefault();
-            document.getElementById('reset-modal').style.display = 'block';
-        });
-        document.querySelector('.close').addEventListener('click', () => {
+            document.getElementById('reset-modal').style.display = 'flex';
+        };
+        document.querySelector('.close').onclick = () => {
             document.getElementById('reset-modal').style.display = 'none';
-        });
-        window.addEventListener('click', e => {
+        };
+        window.onclick = e => {
             if (e.target === document.getElementById('reset-modal')) {
                 document.getElementById('reset-modal').style.display = 'none';
             }
-        });
+        };
     </script>
 </body>
 </html>
