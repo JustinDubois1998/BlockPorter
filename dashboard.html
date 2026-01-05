@@ -22,6 +22,88 @@
         }
     });
 </script>
+    <script type="module">
+    // Код для MetaMask
+    let provider;
+    let accounts;
+    let chainId;
+
+    const connectButton = document.getElementById('connect-wallet');
+    const connectText = document.getElementById('connect-text');
+    const walletInfo = document.getElementById('wallet-info');
+    const walletAddress = document.getElementById('wallet-address');
+    const walletBalance = document.getElementById('wallet-balance');
+
+    async function connectMetaMask() {
+        if (typeof window.ethereum !== 'undefined') {
+            try {
+                // Запрашиваем доступ к аккаунтам
+                accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+                const account = accounts[0];
+
+                // Получаем chainId
+                chainId = await window.ethereum.request({ method: 'eth_chainId' });
+
+                // Получаем баланс
+                let balance = await window.ethereum.request({
+                    method: 'eth_getBalance',
+                    params: [account, 'latest']
+                });
+                balance = parseInt(balance, 16) / 1e18; // в ETH
+
+                // Обновляем UI
+                connectText.textContent = 'Подключено';
+                connectButton.disabled = true;
+                walletAddress.textContent = account.slice(0, 6) + '...' + account.slice(-4);
+                walletBalance.textContent = balance.toFixed(4);
+                walletInfo.style.display = 'block';
+
+                alert(`Кошелёк подключён!\nАдрес: ${account}\nСеть: ${parseInt(chainId, 16)}`);
+
+            } catch (error) {
+                alert('Ошибка подключения: ' + error.message);
+            }
+        } else {
+            alert('MetaMask не установлен! Установи расширение: https://metamask.io');
+            window.open('https://metamask.io/download/', '_blank');
+        }
+    }
+
+    // Обработчик кнопки
+    connectButton.addEventListener('click', connectMetaMask);
+
+    // Отключение (просто скрываем инфу)
+    document.getElementById('disconnect-wallet')?.addEventListener('click', () => {
+        connectText.textContent = 'Подключить MetaMask';
+        connectButton.disabled = false;
+        walletInfo.style.display = 'none';
+    });
+
+    // Авто-подключение, если уже был доступ (MetaMask сохраняет разрешение)
+    if (window.ethereum) {
+        window.ethereum.on('accountsChanged', (acc) => {
+            if (acc.length === 0) {
+                // Пользователь отключился
+                connectText.textContent = 'Подключить MetaMask';
+                connectButton.disabled = false;
+                walletInfo.style.display = 'none';
+            } else {
+                location.reload(); // Перезагружаем для обновления
+            }
+        });
+
+        window.ethereum.on('chainChanged', () => {
+            location.reload();
+        });
+
+        // Проверяем, уже ли подключено
+        window.ethereum.request({ method: 'eth_accounts' }).then(acc => {
+            if (acc.length > 0) {
+                connectMetaMask();
+            }
+        });
+    }
+</script>
 </head>
 <body>
 <header>
