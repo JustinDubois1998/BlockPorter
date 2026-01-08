@@ -118,62 +118,42 @@
             });
         }
 
-        async function loadData() {
-            if (!currentAccount || !MORALIS_API_KEY || MORALIS_API_KEY === 'твой_ключ_здесь') {
-                document.getElementById('balances-list').innerHTML = '<div class="asset-row">Вставь Moralis API Key!</div>';
-                document.getElementById('tx-history').innerHTML = '';
-                return;
-            }
+async function loadData() {
+    if (!currentAccount) return;
 
-            const headers = {
-                'accept': 'application/json',
-                'X-API-Key': MORALIS_API_KEY
-            };
+    // DeBank API — баланс + все токены на всех цепях
+    try {
+        const res = await fetch(`https://api.debank.com/user/addr?id=${currentAccount}`);
+        const data = await res.json();
 
-            const chainParam = chainNames[currentChainId] ? `chain=${chainNames[currentChainId].toLowerCase().replace(' ', '-')}` : '';
+        const balancesDiv = document.getElementById('balances-list');
+        balancesDiv.innerHTML = '';
 
-            // === Балансы всех токенов ===
-            try {
-                const balUrl = `https://deep-index.moralis.io/api/v2.2/wallets/${currentAccount}/tokens?${chainParam}`;
-                const balRes = await fetch(balUrl, { headers });
-                if (!balRes.ok) throw new Error('Ошибка API: ' + balRes.status);
-                const balData = await balRes.json();
+        let totalUsd = 0;
+        data.data?.token_list?.forEach(token => {
+            const balance = token.amount ? token.amount.toFixed(4) : (token.balance / Math.pow(10, token.decimals || 18)).toFixed(4);
+            const usd = token.usd_value ? ` (~$${token.usd_value.toFixed(2)})` : '';
+            totalUsd += token.usd_value || 0;
 
-                const list = document.getElementById('balances-list');
-                list.innerHTML = '';
-                balData.forEach(token => {
-                    const balance = parseFloat(token.balance_formatted || 0);
-                    if (balance > 0) {
-                        const usd = token.usd_price ? ` (~$${token.usd_price.toFixed(2)})` : '';
-                        list.innerHTML += `<div class="asset-row"><span>${token.symbol} ${token.name ? '(' + token.name + ')' : ''}</span><strong>${balance.toFixed(4)} ${usd}</strong></div>`;
-                    }
-                });
+            balancesDiv.innerHTML += `
+                <div class="asset-row">
+                    <span>${token.symbol} (${token.chain})</span>
+                    <strong>${balance} ${usd}</strong>
+                </div>`;
+        });
 
-                if (list.innerHTML === '') list.innerHTML = '<div class="asset-row">Нет токенов с балансом</div>';
-            } catch (e) {
-                document.getElementById('balances-list').innerHTML = `<div class="asset-row">Ошибка: ${e.message}</div>`;
-            }
+        // Добавляем общую стоимость
+        balancesDiv.innerHTML = `<div class="asset-row"><strong>Общая стоимость: $${totalUsd.toFixed(2)}</strong></div>` + balancesDiv.innerHTML;
 
-            // === История транзакций ===
-            try {
-                const txUrl = `https://deep-index.moralis.io/api/v2.2/wallets/${currentAccount}/history?${chainParam}&order=DESC`;
-                const txRes = await fetch(txUrl, { headers });
-                if (!txRes.ok) throw new Error('Ошибка API: ' + txRes.status);
-                const txData = await txRes.json();
-
-                const txDiv = document.getElementById('tx-history');
-                txDiv.innerHTML = '';
-                txData.result.slice(0, 10).forEach(tx => {
-                    const date = new Date(tx.block_timestamp).toLocaleString('ru-RU');
-                    const summary = tx.summary || 'Транзакция';
-                    txDiv.innerHTML += `<div class="asset-row tx-row"><div><strong>${date}</strong><br>${summary}</div></div>`;
-                });
-
-                if (txData.result.length === 0) txDiv.innerHTML = '<div class="asset-row">Нет транзакций</div>';
-            } catch (e) {
-                document.getElementById('tx-history').innerHTML = `<div class="asset-row">Ошибка: ${e.message}</div>`;
-            }
+        if (!data.data?.token_list || data.data.token_list.length === 0) {
+            balancesDiv.innerHTML = '<div class="asset-row">Нет токенов</div>';
         }
+    } catch (e) {
+        document.getElementById('balances-list').innerHTML = '<div class="asset-row">Ошибка DeBank API</div>';
+    }
+
+    // История транзакций — пока оставим через MetaMask (или добавим DeBank /v1/user/history)
+}
 
         // События смены сети/аккаунта
         if (window.ethereum) {
