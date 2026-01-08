@@ -40,7 +40,7 @@
             <!-- Подключено -->
             <div id="wallet-connected" style="display:none;">
                 <div class="network-info">
-                    <p>Текущая сеть: <strong id="current-network">Ethereum</strong></p>
+                    <p>Текущая сеть: <strong id="current-network">Загрузка...</strong></p>
                 </div>
 
                 <div class="address-section">
@@ -56,9 +56,9 @@
                     <div id="qr-code"></div>
                 </div>
 
-                <h3>Балансы активов</h3>
+                <h3>Балансы активов (текущая сеть)</h3>
                 <div class="assets-list" id="balances-list">
-                    <div class="asset-row">Загрузка...</div>
+                    <div class="asset-row">Загрузка балансов...</div>
                 </div>
 
                 <button id="disconnect" class="btn logout-btn">Выйти из кошелька</button>
@@ -68,7 +68,6 @@
 
     <script type="module">
         let currentAccount = null;
-        const DEBANK_ACCESS_KEY = 'e11a3aa95bd9b41accb428778eaaa700b2886a83';
         let currentChainId = null;
 
         const chainNames = {
@@ -87,8 +86,8 @@
             '42161': 'ETH'
         };
 
-        // Популярные токены (USDC и USDT адреса на разных сетях)
-        const popularTokens = {
+        // Адреса USDC и USDT на разных сетях (6 decimals)
+        const stableTokens = {
             USDC: {
                 '1': '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
                 '56': '0x8ac76a51cc950d9822d68b83fe1ad97b32cd580d',
@@ -105,6 +104,7 @@
             }
         };
 
+        // Автозагрузка из localStorage
         if (localStorage.getItem('walletConnected') === 'true') {
             currentAccount = localStorage.getItem('walletAddress');
             showConnected();
@@ -113,7 +113,7 @@
 
         async function connectWallet() {
             if (!window.ethereum) {
-                alert('Установи MetaMask!');
+                alert('MetaMask не найден! Установи расширение.');
                 return;
             }
 
@@ -139,82 +139,66 @@
             document.getElementById('full-address').textContent = currentAccount;
             document.getElementById('current-network').textContent = chainNames[currentChainId] || 'Неизвестная сеть';
 
+            // QR-код
             document.getElementById('qr-code').innerHTML = '';
             new QRCode(document.getElementById('qr-code'), {
                 text: currentAccount,
-                width: 220, height: 220,
-                colorDark: "#00ff9d", colorLight: "#1e1e1e"
+                width: 220,
+                height: 220,
+                colorDark: "#00ff9d",
+                colorLight: "#1e1e1e"
             });
         }
 
         async function loadBalances() {
-            if (!currentAccount || !currentChainId) return;
-
             const list = document.getElementById('balances-list');
             list.innerHTML = '<div class="asset-row">Загрузка балансов...</div>';
 
             try {
                 // Нативный токен
-                const nativeBalanceHex = await ethereum.request({
-                    method: 'eth_getBalance',
-                    params: [currentAccount, 'latest']
-                });
-                const nativeBalance = parseInt(nativeBalanceHex, 16) / 1e18;
+                const nativeHex = await ethereum.request({ method: 'eth_getBalance', params: [currentAccount, 'latest'] });
+                const nativeBalance = parseInt(nativeHex, 16) / 1e18;
                 const nativeSymbol = nativeTokens[currentChainId] || 'Native';
 
                 list.innerHTML = `<div class="asset-row"><span>${nativeSymbol}</span><strong>${nativeBalance.toFixed(6)}</strong></div>`;
 
-                // USDC и USDT (если адрес есть в сети)
-                for (const [symbol, addresses] of Object.entries(popularTokens)) {
-                    const contract = addresses[currentChainId];
+                // USDC и USDT
+                for (const [symbol, contracts] of Object.entries(stableTokens)) {
+                    const contract = contracts[currentChainId];
                     if (contract) {
-                        const balance = await getERC20Balance(contract);
+                        const balance = await getTokenBalance(contract);
                         if (balance > 0) {
                             list.innerHTML += `<div class="asset-row"><span>${symbol}</span><strong>${balance.toFixed(6)}</strong></div>`;
                         }
                     }
                 }
-
-                if (list.innerHTML === '<div class="asset-row">Загрузка балансов...</div>') {
-                    list.innerHTML = '<div class="asset-row">Нет активов или ошибка</div>';
-                }
             } catch (e) {
-                list.innerHTML = '<div class="asset-row">Ошибка загрузки</div>';
+                list.innerHTML = '<div class="asset-row">Ошибка загрузки балансов</div>';
+                console.error(e);
             }
         }
 
-        // Функция для ERC20 баланса (стандартный вызов)
-        async function getERC20Balance(contractAddress) {
-            const minimalABI = [
-                {
-                    "constant": true,
-                    "inputs": [{ "name": "_owner", "type": "address" }],
-                    "name": "balanceOf",
-                    "outputs": [{ "name": "balance", "type": "uint256" }],
-                    "type": "function"
-                }
-            ];
-
+        // Универсальная функция для ERC20 баланса
+        async function getTokenBalance(contractAddress) {
+            const abi = [{"constant":true,"inputs":[{"name":"_owner","type":"address"}],"name":"balanceOf","outputs":[{"name":"balance","type":"uint256"}],"type":"function"}];
             try {
                 const balanceHex = await ethereum.request({
                     method: 'eth_call',
-                    params: [{
-                        to: contractAddress,
-                        data: '0x70a08231000000000000000000000000' + currentAccount.slice(2)
-                    }, 'latest']
+                    params: [{ to: contractAddress, data: '0x70a08231000000000000000000000000' + currentAccount.slice(2) }, 'latest']
                 });
-                return parseInt(balanceHex, 16) / 1e6; // USDC/USDT имеют 6 decimals
+                return parseInt(balanceHex, 16) / 1e6; // 6 decimals для USDC/USDT
             } catch {
                 return 0;
             }
         }
 
-        // События смены сети/аккаунта
+        // Автообновление при смене сети или аккаунта
         if (window.ethereum) {
             ethereum.on('chainChanged', () => location.reload());
             ethereum.on('accountsChanged', () => location.reload());
         }
 
+        // Кнопки
         document.getElementById('connect-wallet').addEventListener('click', connectWallet);
         document.getElementById('copy-address').addEventListener('click', () => {
             navigator.clipboard.writeText(currentAccount);
