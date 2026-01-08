@@ -6,7 +6,8 @@
     <title>BlockPorter - Вход и регистрация</title>
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
-    
+    <link rel="icon" href="logo.svg" type="image/svg+xml">
+
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js";
         import { 
@@ -30,18 +31,20 @@
 
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
-        const provider = new GoogleAuthProvider();
+        const googleProvider = new GoogleAuthProvider();
 
+        // Если уже залогинен через Firebase — сразу на dashboard
         onAuthStateChanged(auth, user => {
             if (user) window.location.href = 'dashboard.html';
         });
 
+        // Спиннер загрузки
         function showLoading(show) {
             document.getElementById('loading-spinner').style.display = show ? 'flex' : 'none';
         }
 
-        // Регистрация
-        document.getElementById('register-form').addEventListener('submit', e => {
+        // === Вход/регистрация через Email ===
+        document.getElementById('register-form')?.addEventListener('submit', e => {
             e.preventDefault();
             const email = e.target.email.value;
             const password = e.target.password.value;
@@ -52,8 +55,7 @@
                 .finally(() => showLoading(false));
         });
 
-        // Вход
-        document.getElementById('login-form').addEventListener('submit', e => {
+        document.getElementById('login-form')?.addEventListener('submit', e => {
             e.preventDefault();
             const email = e.target.email.value;
             const password = e.target.password.value;
@@ -64,24 +66,59 @@
                 .finally(() => showLoading(false));
         });
 
-        // Google вход (для обеих форм)
+        // === Вход через Google ===
         document.querySelectorAll('.google-btn').forEach(btn => {
             btn.addEventListener('click', () => {
                 showLoading(true);
-                signInWithPopup(auth, provider)
+                signInWithPopup(auth, googleProvider)
                     .then(() => window.location.href = 'dashboard.html')
                     .catch(err => alert('Ошибка Google: ' + err.message))
                     .finally(() => showLoading(false));
             });
         });
 
-        // Сброс пароля
-        document.getElementById('reset-form').addEventListener('submit', e => {
+        // === Вход через MetaMask (основной Web3-способ) ===
+        async function connectMetaMaskAsLogin() {
+            if (!window.ethereum) {
+                alert('MetaMask не установлен! Скачай расширение: https://metamask.io');
+                window.open('https://metamask.io/download/', '_blank');
+                return;
+            }
+
+            showLoading(true);
+            try {
+                const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+                const account = accounts[0].toLowerCase();
+
+                // Сохраняем в localStorage — это теперь наш "логин"
+                localStorage.setItem('walletAddress', account);
+                localStorage.setItem('walletConnected', 'true');
+
+                alert(`Кошелёк успешно подключён!\n${account.slice(0,6)}...${account.slice(-4)}`);
+                window.location.href = 'dashboard.html';
+            } catch (error) {
+                if (error.code === 4001) {
+                    alert('Подключение отклонено');
+                } else {
+                    alert('Ошибка: ' + error.message);
+                }
+            } finally {
+                showLoading(false);
+            }
+        }
+
+        // Кнопка MetaMask работает на обеих вкладках
+        document.querySelectorAll('.metamask-btn').forEach(btn => {
+            btn.addEventListener('click', connectMetaMaskAsLogin);
+        });
+
+        // === Сброс пароля ===
+        document.getElementById('reset-form')?.addEventListener('submit', e => {
             e.preventDefault();
             const email = e.target.resetEmail.value;
             showLoading(true);
             sendPasswordResetEmail(auth, email)
-                .then(() => alert('Письмо отправлено на ' + email))
+                .then(() => alert('Письмо для сброса пароля отправлено на ' + email))
                 .catch(err => alert('Ошибка: ' + err.message))
                 .finally(() => {
                     showLoading(false);
@@ -96,13 +133,12 @@
             <a href="index.html" class="logo">
                 <img src="logo.svg" alt="BlockPorter" height="40">
             </a>
-        <nav>
-            <a href="index.html">Главная</a>
-            <a href="dashboard.html">Обмен</a>
-            <a href="about.html">О проекте</a>
-            <span id="user-info"><a href="auth.html">Войти / Регистрация</a></span>
-        </nav>
-
+            <nav>
+                <a href="index.html">Главная</a>
+                <a href="dashboard.html">Обмен</a>
+                <a href="about.html">О проекте</a>
+                <a href="profile.html">Профиль</a>
+            </nav>
         </div>
     </header>
 
@@ -133,10 +169,16 @@
 
                 <button type="submit" class="btn auth-main-btn">Войти</button>
 
-                <div class="divider"><span>или</span></div>
+                <div class="divider"><span>или войти через</span></div>
+
+                <!-- Главная кнопка — MetaMask -->
+                <button type="button" class="btn metamask-btn">
+                    <img src="https://upload.wikimedia.org/wikipedia/commons/3/36/MetaMask_Fox.svg" alt="MetaMask" class="wallet-icon">
+                    MetaMask
+                </button>
 
                 <button type="button" class="btn google-btn">
-                    <i class="fab fa-google"></i> Войти через Google
+                    <i class="fab fa-google"></i> Google
                 </button>
             </form>
 
@@ -153,15 +195,21 @@
 
                 <button type="submit" class="btn auth-main-btn">Зарегистрироваться</button>
 
-                <div class="divider"><span>или</span></div>
+                <div class="divider"><span>или войти через</span></div>
+
+                <!-- MetaMask в регистрации тоже -->
+                <button type="button" class="btn metamask-btn">
+                    <img src="https://upload.wikimedia.org/wikipedia/commons/3/36/MetaMask_Fox.svg" alt="MetaMask" class="wallet-icon">
+                    MetaMask
+                </button>
 
                 <button type="button" class="btn google-btn">
-                    <i class="fab fa-google"></i> Через Google
+                    <i class="fab fa-google"></i> Google
                 </button>
             </form>
         </div>
 
-        <!-- Модалка сброса -->
+        <!-- Модальное окно сброса пароля -->
         <div id="reset-modal" class="modal">
             <div class="modal-content">
                 <span class="close">&times;</span>
@@ -171,19 +219,19 @@
                         <i class="fas fa-envelope"></i>
                         <input type="email" name="resetEmail" placeholder="Ваш email" required>
                     </div>
-                    <button type="submit" class="btn auth-main-btn">Отправить</button>
+                    <button type="submit" class="btn auth-main-btn">Отправить письмо</button>
                 </form>
             </div>
         </div>
 
-        <!-- Спиннер -->
+        <!-- Спиннер загрузки -->
         <div id="loading-spinner" class="spinner">
             <div class="spinner-circle"></div>
         </div>
     </main>
 
     <script>
-        // Переключение вкладок
+        // Переключение вкладок Вход / Регистрация
         document.querySelectorAll('.tab-btn').forEach(btn => {
             btn.addEventListener('click', () => {
                 document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
@@ -193,7 +241,7 @@
             });
         });
 
-        // Модалка
+        // Модалка сброса пароля
         document.getElementById('forgot-password').onclick = e => {
             e.preventDefault();
             document.getElementById('reset-modal').style.display = 'flex';
