@@ -19,7 +19,7 @@
                 <a href="index.html">Главная</a>
                 <a href="dashboard.html">Обмен</a>
                 <a href="about.html">О проекте</a>
-                <span id="user-info">Профиль</span>
+                <a href="profile.html">Профиль</a>
             </nav>
         </div>
     </header>
@@ -28,21 +28,19 @@
         <div class="profile-card">
             <h2>Личный кабинет</h2>
 
+            <!-- Если кошелёк не подключён -->
             <div id="no-wallet" class="connect-section">
-                <p>Подключите кошелёк для просмотра данных</p>
+                <p>Подключите кошелёк, чтобы увидеть балансы и историю</p>
                 <button id="connect-wallet" class="btn auth-main-btn metamask-btn">
                     <img src="https://upload.wikimedia.org/wikipedia/commons/3/36/MetaMask_Fox.svg" alt="MetaMask" class="wallet-icon">
-                    Подключить кошелёк
+                    Подключить / Войти через кошелёк
                 </button>
             </div>
 
+            <!-- После подключения -->
             <div id="wallet-connected" style="display:none;">
-                <div class="network-selector">
-                    <span id="current-network">Сеть: Загрузка...</span>
-                </div>
-
                 <div class="address-section">
-                    <p>Адрес:</p>
+                    <p>Ваш адрес:</p>
                     <div class="address-display">
                         <span id="full-address"></span>
                         <button id="copy-address" class="btn small">Копировать</button>
@@ -50,55 +48,61 @@
                 </div>
 
                 <div class="qr-section">
-                    <p>QR для пополнения</p>
+                    <p>QR-код для пополнения</p>
                     <div id="qr-code"></div>
                 </div>
 
-                <h3>Балансы (все токены с балансом >0)</h3>
-                <div class="assets-list" id="balances-list">Загрузка балансов...</div>
+                <div class="actions">
+                    <button id="copy-again" class="btn">Копировать адрес</button>
+                </div>
 
-                <h3>Последние транзакции</h3>
-                <div class="tx-history" id="tx-history">Загрузка истории...</div>
+                <h3>Портфель (все цепи и токены)</h3>
+                <div class="portfolio-total" id="portfolio-total">
+                    Общая стоимость: загрузка...
+                </div>
 
-                <button id="disconnect" class="btn logout-btn">Выйти</button>
+                <div class="assets-list" id="balances-list">
+                    <div class="asset-row">Загрузка балансов...</div>
+                </div>
+
+                <button id="disconnect" class="btn logout-btn">Выйти из кошелька</button>
             </div>
         </div>
     </main>
 
     <script type="module">
-        // <-- ВСТАВЬ СВОЙ MORALIS API KEY СЮДА! (из дашборда moralis.io)
-        const MORALIS_API_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJub25jZSI6IjQxNmYwZTIyLWU4NzktNGMyYi05NzRkLTlkODA4MjMyY2Q4ZCIsIm9yZ0lkIjoiNDg5MzI2IiwidXNlcklkIjoiNTAzNDU3IiwidHlwZUlkIjoiZmQ1M2E1ZjUtOTIxYi00OTI5LTk2OTItNDcyMDhhMzQ2MzA4IiwidHlwZSI6IlBST0pFQ1QiLCJpYXQiOjE3Njc5MDU2ODMsImV4cCI6NDkyMzY2NTY4M30.y6UU-cK_dELgx377LsGND73mfSMyup6iDidhJ4sGR1U'; // Например: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...'
-
         let currentAccount = null;
-        let currentChainId = null;
 
-        const chainNames = {
-            1: 'Ethereum', 56: 'BSC', 137: 'Polygon', 10: 'Optimism', 42161: 'Arbitrum'
-        };
-
-        // Авто-подключение из localStorage
+        // Проверка сохранённого подключения
         if (localStorage.getItem('walletConnected') === 'true') {
             currentAccount = localStorage.getItem('walletAddress');
             showConnected();
-            await loadData();
+            loadPortfolio();
         }
 
+        // Подключение MetaMask
         async function connectWallet() {
-            if (!window.ethereum) return alert('Установи MetaMask!');
+            if (!window.ethereum) {
+                alert('MetaMask не установлен! Скачай: https://metamask.io');
+                window.open('https://metamask.io/download/', '_blank');
+                return;
+            }
 
             try {
-                const accounts = await ethereum.request({ method: 'eth_requestAccounts' });
+                const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
                 currentAccount = accounts[0].toLowerCase();
-                const chainHex = await ethereum.request({ method: 'eth_chainId' });
-                currentChainId = parseInt(chainHex, 16);
 
                 localStorage.setItem('walletAddress', currentAccount);
                 localStorage.setItem('walletConnected', 'true');
 
                 showConnected();
-                await loadData();
-            } catch (err) {
-                alert('Ошибка подключения: ' + err.message);
+                loadPortfolio();
+            } catch (error) {
+                if (error.code === 4001) {
+                    alert('Подключение отклонено пользователем');
+                } else {
+                    alert('Ошибка: ' + error.message);
+                }
             }
         }
 
@@ -107,70 +111,89 @@
             document.getElementById('wallet-connected').style.display = 'block';
             document.getElementById('full-address').textContent = currentAccount;
 
-            document.getElementById('current-network').textContent = `Сеть: ${chainNames[currentChainId] || 'Неизвестная'}`;
-
             // QR-код
             document.getElementById('qr-code').innerHTML = '';
             new QRCode(document.getElementById('qr-code'), {
                 text: currentAccount,
-                width: 220, height: 220,
-                colorDark: "#00ff9d", colorLight: "#1e1e1e"
+                width: 220,
+                height: 220,
+                colorDark: "#00ff9d",
+                colorLight: "#1e1e1e"
             });
         }
 
-async function loadData() {
-    if (!currentAccount) return;
+        // Загрузка всего портфеля через DeBank Open API
+        async function loadPortfolio() {
+            if (!currentAccount) return;
 
-    // DeBank API — баланс + все токены на всех цепях
-    try {
-        const res = await fetch(`https://api.debank.com/user/addr?id=${currentAccount}`);
-        const data = await res.json();
+            try {
+                const response = await fetch(`https://api.debank.com/user/total_balance?id=${currentAccount}`);
+                const data = await response.json();
 
-        const balancesDiv = document.getElementById('balances-list');
-        balancesDiv.innerHTML = '';
+                const totalBalance = data.data?.total_usd_value || 0;
+                document.getElementById('portfolio-total').textContent = 
+                    `Общая стоимость портфеля: $${totalBalance.toFixed(2)}`;
 
-        let totalUsd = 0;
-        data.data?.token_list?.forEach(token => {
-            const balance = token.amount ? token.amount.toFixed(4) : (token.balance / Math.pow(10, token.decimals || 18)).toFixed(4);
-            const usd = token.usd_value ? ` (~$${token.usd_value.toFixed(2)})` : '';
-            totalUsd += token.usd_value || 0;
+                // Все токены
+                const tokenResponse = await fetch(`https://api.debank.com/token/balance_list?user_addr=${currentAccount}`);
+                const tokenData = await tokenResponse.json();
 
-            balancesDiv.innerHTML += `
-                <div class="asset-row">
-                    <span>${token.symbol} (${token.chain})</span>
-                    <strong>${balance} ${usd}</strong>
-                </div>`;
-        });
+                const list = document.getElementById('balances-list');
+                list.innerHTML = '';
 
-        // Добавляем общую стоимость
-        balancesDiv.innerHTML = `<div class="asset-row"><strong>Общая стоимость: $${totalUsd.toFixed(2)}</strong></div>` + balancesDiv.innerHTML;
+                const tokens = tokenData.data || [];
+                if (tokens.length === 0) {
+                    list.innerHTML = '<div class="asset-row">Нет активов на подключённом адресе</div>';
+                    return;
+                }
 
-        if (!data.data?.token_list || data.data.token_list.length === 0) {
-            balancesDiv.innerHTML = '<div class="asset-row">Нет токенов</div>';
-        }
-    } catch (e) {
-        document.getElementById('balances-list').innerHTML = '<div class="asset-row">Ошибка DeBank API</div>';
-    }
+                // Сортируем по USD стоимости
+                tokens.sort((a, b) => (b.amount * b.price || 0) - (a.amount * a.price || 0));
 
-    // История транзакций — пока оставим через MetaMask (или добавим DeBank /v1/user/history)
-}
+                tokens.forEach(token => {
+                    const amount = token.amount?.toFixed(4) || (token.balance / Math.pow(10, token.decimals || 18)).toFixed(4);
+                    const usdValue = (token.amount * token.price || token.usd_value || 0).toFixed(2);
+                    const chainName = token.chain.charAt(0).toUpperCase() + token.chain.slice(1);
 
-        // События смены сети/аккаунта
-        if (window.ethereum) {
-            ethereum.on('chainChanged', () => location.reload());
-            ethereum.on('accountsChanged', () => location.reload());
+                    list.innerHTML += `
+                        <div class="asset-row">
+                            <span>${token.symbol} <small>(${chainName})</small></span>
+                            <strong>${amount} (≈$${usdValue})</strong>
+                        </div>
+                    `;
+                });
+
+            } catch (error) {
+                document.getElementById('balances-list').innerHTML = 
+                    '<div class="asset-row">Ошибка загрузки данных DeBank. Попробуйте позже.</div>';
+                document.getElementById('portfolio-total').textContent = 'Ошибка загрузки';
+                console.error(error);
+            }
         }
 
         // Кнопки
         document.getElementById('connect-wallet').addEventListener('click', connectWallet);
+
         document.getElementById('copy-address').addEventListener('click', () => {
             navigator.clipboard.writeText(currentAccount);
-            alert('Адрес скопирован!');
+            alert('Адрес скопирован в буфер!');
         });
+
+        document.getElementById('copy-again').addEventListener('click', () => {
+            navigator.clipboard.writeText(currentAccount);
+            alert('Адрес скопирован в буфер!');
+        });
+
         document.getElementById('disconnect').addEventListener('click', () => {
-            localStorage.clear();
+            localStorage.removeItem('walletAddress');
+            localStorage.removeItem('walletConnected');
             location.reload();
         });
+
+        // Автообновление при смене аккаунта
+        if (window.ethereum) {
+            window.ethereum.on('accountsChanged', () => location.reload());
+        }
     </script>
 </body>
 </html>
