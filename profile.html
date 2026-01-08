@@ -5,48 +5,154 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>BlockPorter - Профиль</title>
     <link rel="stylesheet" href="style.css">
-    <script type="module">
-        // Тот же MetaMask код
-        // При подключении: показываем адрес как имя пользователя
-        // Баланс всех активов (заглушка + ETH реальный)
-        // QR код для пополнения (генерируем по адресу)
-        async function updateProfile() {
-            if (currentAccount) {
-                document.getElementById('username').textContent = currentAccount.slice(0,6) + '...' + currentAccount.slice(-4);
-                document.getElementById('full-address').textContent = currentAccount;
-                // QR код
-                const qr = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${currentAccount}`;
-                document.getElementById('qr-code').src = qr;
-                // Баланс активов (пример)
-                document.getElementById('assets-list').innerHTML = `
-                    <div class="asset">ETH: ${ (await getBalance()).toFixed(4) }</div>
-                    <div class="asset">USDC: 0.00 (заглушка)</div>
-                    <div class="asset">BNB: 0.00</div>
-                `;
-            }
-        }
-    </script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link rel="icon" href="logo.svg" type="image/svg+xml">
+    <script src="https://cdn.jsdelivr.net/npm/qrcode.js@1.0.0/lib/qrcode.min.js"></script>
 </head>
 <body>
-    <header><!-- Та же шапка --></header>
+    <header>
+        <div class="container">
+            <a href="index.html" class="logo">
+                <img src="logo.svg" alt="BlockPorter" height="40">
+            </a>
+            <nav>
+                <a href="index.html">Главная</a>
+                <a href="dashboard.html">Обмен</a>
+                <a href="about.html">О проекте</a>
+                <span id="user-info">Профиль</span>
+            </nav>
+        </div>
+    </header>
 
-    <main class="container profile-page">
+    <main class="container profile-main">
         <div class="profile-card">
             <h2>Личный кабинет</h2>
-            <button id="connect-wallet">Подключить / Войти через кошелёк</button>
-            
-            <div id="profile-info" style="display:none;">
-                <p>Имя пользователя: <strong id="username">—</strong></p>
-                <p>Адрес: <strong id="full-address">—</strong> <button onclick="navigator.clipboard.writeText(currentAccount)">Копировать</button></p>
-                
-                <h3>Пополнить баланс</h3>
-                <img id="qr-code" alt="QR для пополнения">
-                <p>Сканируйте QR или переведите на адрес выше</p>
-                
-                <h3>Ваши активы</h3>
-                <div id="assets-list">Подключите кошелёк</div>
+
+            <!-- Если кошелёк не подключён -->
+            <div id="no-wallet" class="connect-section">
+                <p>Подключите кошелёк, чтобы управлять активами</p>
+                <button id="connect-wallet" class="btn auth-main-btn metamask-btn">
+                    <img src="https://upload.wikimedia.org/wikipedia/commons/3/36/MetaMask_Fox.svg" alt="MetaMask" class="wallet-icon">
+                    Подключить / Войти через кошелёк
+                </button>
+            </div>
+
+            <!-- После подключения -->
+            <div id="wallet-connected" style="display:none;">
+                <div class="address-section">
+                    <p>Ваш адрес:</p>
+                    <div class="address-display">
+                        <span id="full-address"></span>
+                        <button id="copy-address" class="btn small">Копировать</button>
+                    </div>
+                </div>
+
+                <div class="qr-section">
+                    <p>QR-код для пополнения</p>
+                    <div id="qr-code"></div>
+                </div>
+
+                <div class="actions">
+                    <button id="share-qr" class="btn">Поделиться QR</button>
+                    <button id="copy-again" class="btn">Копировать адрес снова</button>
+                </div>
+
+                <h3>Балансы активов</h3>
+                <div class="assets-list">
+                    <div class="asset-row">
+                        <span>ETH</span>
+                        <strong id="balance-eth">0.0000 ETH</strong>
+                    </div>
+                    <div class="asset-row">
+                        <span>USDC</span>
+                        <strong>0.00 USDC</strong>
+                    </div>
+                    <div class="asset-row">
+                        <span>USDT</span>
+                        <strong>0.00 USDT</strong>
+                    </div>
+                </div>
+
+                <button id="disconnect" class="btn logout-btn">Выйти из кошелька</button>
             </div>
         </div>
     </main>
+
+    <script type="module">
+        let currentAccount = null;
+
+        // Проверка сохранённого подключения
+        if (localStorage.getItem('walletConnected') === 'true') {
+            currentAccount = localStorage.getItem('walletAddress');
+            showConnected();
+        }
+
+        async function connectWallet() {
+            if (!window.ethereum) {
+                alert('Установи MetaMask: https://metamask.io');
+                return;
+            }
+
+            try {
+                const accounts = await ethereum.request({ method: 'eth_requestAccounts' });
+                currentAccount = accounts[0].toLowerCase();
+
+                localStorage.setItem('walletAddress', currentAccount);
+                localStorage.setItem('walletConnected', 'true');
+
+                showConnected();
+                await updateBalance();
+            } catch (err) {
+                alert('Ошибка: ' + err.message);
+            }
+        }
+
+        function showConnected() {
+            document.getElementById('no-wallet').style.display = 'none';
+            document.getElementById('wallet-connected').style.display = 'block';
+            document.getElementById('full-address').textContent = currentAccount;
+
+            // QR-код
+            document.getElementById('qr-code').innerHTML = '';
+            new QRCode(document.getElementById('qr-code'), {
+                text: currentAccount,
+                width: 220,
+                height: 220,
+                colorDark: "#00ff9d",
+                colorLight: "#1e1e1e"
+            });
+        }
+
+        async function updateBalance() {
+            if (currentAccount) {
+                const balance = await ethereum.request({ method: 'eth_getBalance', params: [currentAccount, 'latest'] });
+                const eth = parseInt(balance, 16) / 1e18;
+                document.getElementById('balance-eth').textContent = eth.toFixed(4) + ' ETH';
+            }
+        }
+
+        // Кнопки
+        document.getElementById('connect-wallet').addEventListener('click', connectWallet);
+
+        document.getElementById('copy-address').addEventListener('click', () => {
+            navigator.clipboard.writeText(currentAccount);
+            alert('Адрес скопирован!');
+        });
+
+        document.getElementById('copy-again').addEventListener('click', () => {
+            navigator.clipboard.writeText(currentAccount);
+            alert('Адрес скопирован!');
+        });
+
+        document.getElementById('disconnect').addEventListener('click', () => {
+            localStorage.clear();
+            location.reload();
+        });
+
+        // Авто-обновление при смене аккаунта
+        if (window.ethereum) {
+            ethereum.on('accountsChanged', () => location.reload());
+        }
+    </script>
 </body>
 </html>
