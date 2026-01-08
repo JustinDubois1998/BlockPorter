@@ -28,19 +28,31 @@
         <div class="profile-card">
             <h2>Личный кабинет</h2>
 
-            <!-- Если кошелёк не подключён -->
+            <!-- Нет подключения -->
             <div id="no-wallet" class="connect-section">
-                <p>Подключите кошелёк, чтобы управлять активами</p>
+                <p>Подключите кошелёк для просмотра балансов и истории</p>
                 <button id="connect-wallet" class="btn auth-main-btn metamask-btn">
                     <img src="https://upload.wikimedia.org/wikipedia/commons/3/36/MetaMask_Fox.svg" alt="MetaMask" class="wallet-icon">
-                    Подключить / Войти через кошелёк
+                    Подключить кошелёк
                 </button>
             </div>
 
-            <!-- После подключения -->
+            <!-- Подключено -->
             <div id="wallet-connected" style="display:none;">
+                <!-- Селектор сети -->
+                <div class="network-selector">
+                    <label>Сеть:</label>
+                    <select id="chain-select">
+                        <option value="1">Ethereum Mainnet</option>
+                        <option value="56">BSC</option>
+                        <option value="137">Polygon</option>
+                        <option value="42161">Arbitrum</option>
+                    </select>
+                    <span id="current-network">Текущая: Ethereum</span>
+                </div>
+
                 <div class="address-section">
-                    <p>Ваш адрес:</p>
+                    <p>Адрес:</p>
                     <div class="address-display">
                         <span id="full-address"></span>
                         <button id="copy-address" class="btn small">Копировать</button>
@@ -48,60 +60,65 @@
                 </div>
 
                 <div class="qr-section">
-                    <p>QR-код для пополнения</p>
+                    <p>QR для пополнения</p>
                     <div id="qr-code"></div>
                 </div>
 
-                <div class="actions">
-                    <button id="share-qr" class="btn">Поделиться QR</button>
-                    <button id="copy-again" class="btn">Копировать адрес снова</button>
+                <h3>Балансы</h3>
+                <div class="assets-list" id="balances-list">
+                    <div class="asset-row"><span>Загрузка...</span></div>
                 </div>
 
-                <h3>Балансы активов</h3>
-                <div class="assets-list">
-                    <div class="asset-row">
-                        <span>ETH</span>
-                        <strong id="balance-eth">0.0000 ETH</strong>
-                    </div>
-                    <div class="asset-row">
-                        <span>USDC</span>
-                        <strong>0.00 USDC</strong>
-                    </div>
-                    <div class="asset-row">
-                        <span>USDT</span>
-                        <strong>0.00 USDT</strong>
-                    </div>
+                <h3>Последние транзакции</h3>
+                <div class="tx-history" id="tx-history">
+                    <div class="asset-row"><span>Загрузка истории...</span></div>
                 </div>
 
-                <button id="disconnect" class="btn logout-btn">Выйти из кошелька</button>
+                <button id="disconnect" class="btn logout-btn">Выйти</button>
             </div>
         </div>
     </main>
 
     <script type="module">
         let currentAccount = null;
+        let currentChainId = '1'; // default Ethereum
 
-        // Проверка сохранённого подключения
+        const chainConfigs = {
+            '1': { name: 'Ethereum Mainnet', covalentId: 1 },
+            '56': { name: 'BSC', covalentId: 56 },
+            '137': { name: 'Polygon', covalentId: 137 },
+            '42161': { name: 'Arbitrum', covalentId: 42161 }
+        };
+
+        const tokenContracts = {
+            USDC: { // USDC адреса разные в сетях, но Covalent нормализует
+                symbol: 'USDC'
+            },
+            USDT: {
+                symbol: 'USDT'
+            }
+        };
+
         if (localStorage.getItem('walletConnected') === 'true') {
             currentAccount = localStorage.getItem('walletAddress');
             showConnected();
+            loadData();
         }
 
         async function connectWallet() {
-            if (!window.ethereum) {
-                alert('Установи MetaMask: https://metamask.io');
-                return;
-            }
+            if (!window.ethereum) return alert('Установи MetaMask!');
 
             try {
                 const accounts = await ethereum.request({ method: 'eth_requestAccounts' });
                 currentAccount = accounts[0].toLowerCase();
+                currentChainId = await ethereum.request({ method: 'eth_chainId' });
+                currentChainId = parseInt(currentChainId, 16).toString();
 
                 localStorage.setItem('walletAddress', currentAccount);
                 localStorage.setItem('walletConnected', 'true');
 
                 showConnected();
-                await updateBalance();
+                loadData();
             } catch (err) {
                 alert('Ошибка: ' + err.message);
             }
@@ -112,47 +129,114 @@
             document.getElementById('wallet-connected').style.display = 'block';
             document.getElementById('full-address').textContent = currentAccount;
 
-            // QR-код
+            // QR
             document.getElementById('qr-code').innerHTML = '';
             new QRCode(document.getElementById('qr-code'), {
                 text: currentAccount,
-                width: 220,
-                height: 220,
-                colorDark: "#00ff9d",
-                colorLight: "#1e1e1e"
+                width: 220, height: 220,
+                colorDark: "#00ff9d", colorLight: "#1e1e1e"
             });
+
+            updateNetworkDisplay();
         }
 
-        async function updateBalance() {
-            if (currentAccount) {
-                const balance = await ethereum.request({ method: 'eth_getBalance', params: [currentAccount, 'latest'] });
-                const eth = parseInt(balance, 16) / 1e18;
-                document.getElementById('balance-eth').textContent = eth.toFixed(4) + ' ETH';
+        function updateNetworkDisplay() {
+            const name = chainConfigs[currentChainId]?.name || 'Неизвестная';
+            document.getElementById('current-network').textContent = `Текущая: ${name}`;
+            document.getElementById('chain-select').value = currentChainId;
+        }
+
+        async function loadData() {
+            if (!currentAccount) return;
+
+            const chain = chainConfigs[currentChainId].covalentId;
+            const urlBalances = `https://api.covalenthq.com/v1/${chain}/address/${currentAccount}/balances_v2/?key=ckey_3e89fc4b0a794c2e8e3f1f3e3f8`;
+            const urlTx = `https://api.covalenthq.com/v1/${chain}/address/${currentAccount}/transactions_v3/?key=ckey_3e89fc4b0a794c2e8e3f1f3e3f8`;
+
+            // Балансы
+            try {
+                const res = await fetch(urlBalances);
+                const data = await res.json();
+                const balancesDiv = document.getElementById('balances-list');
+                balancesDiv.innerHTML = '';
+
+                // ETH
+                const ethBalance = data.data.items.find(i => i.contract_address === '0x0000000000000000000000000000000000000000');
+                const eth = ethBalance ? (ethBalance.balance / 1e18).toFixed(4) : '0';
+                balancesDiv.innerHTML += `<div class="asset-row"><span>ETH/${chainConfigs[currentChainId].name}</span><strong>${eth} ETH</strong></div>`;
+
+                // USDC и USDT
+                const usdc = data.data.items.find(i => i.contract_ticker_symbol === 'USDC') || { balance: 0 };
+                const usdt = data.data.items.find(i => i.contract_ticker_symbol === 'USDT') || { balance: 0 };
+                balancesDiv.innerHTML += `<div class="asset-row"><span>USDC</span><strong>${(usdc.balance / 1e6).toFixed(2)}</strong></div>`;
+                balancesDiv.innerHTML += `<div class="asset-row"><span>USDT</span><strong>${(usdt.balance / 1e6).toFixed(2)}</strong></div>`;
+            } catch (e) {
+                document.getElementById('balances-list').innerHTML = '<div class="asset-row"><span>Ошибка загрузки балансов</span></div>';
             }
+
+            // История транзакций
+            try {
+                const resTx = await fetch(urlTx);
+                const dataTx = await resTx.json();
+                const txDiv = document.getElementById('tx-history');
+                txDiv.innerHTML = '';
+
+                const txs = dataTx.data.items.slice(0, 10);
+                if (txs.length === 0) {
+                    txDiv.innerHTML = '<div class="asset-row"><span>Нет транзакций</span></div>';
+                } else {
+                    txs.forEach(tx => {
+                        const date = new Date(tx.block_signed_at).toLocaleString('ru-RU');
+                        const value = (tx.value / 1e18).toFixed(4);
+                        const hashShort = tx.tx_hash.slice(0, 10) + '...';
+                        txDiv.innerHTML += `
+                            <div class="asset-row tx-row">
+                                <div>
+                                    <strong>${date}</strong><br>
+                                    <a href="https://${chainConfigs[currentChainId].name.toLowerCase()}.etherscan.io/tx/${tx.tx_hash}" target="_blank">${hashShort}</a>
+                                </div>
+                                <strong>${tx.successful ? '+' : '-'} ${value} ETH</strong>
+                            </div>`;
+                    });
+                }
+            } catch (e) {
+                document.getElementById('tx-history').innerHTML = '<div class="asset-row"><span>Ошибка загрузки истории</span></div>';
+            }
+        }
+
+        // Смена сети
+        document.getElementById('chain-select').addEventListener('change', async e => {
+            const newChain = e.target.value;
+            try {
+                await ethereum.request({
+                    method: 'wallet_switchEthereumChain',
+                    params: [{ chainId: '0x' + parseInt(newChain).toString(16) }]
+                });
+            } catch (switchError) {
+                if (switchError.code === 4902) {
+                    alert('Сеть не добавлена в MetaMask');
+                }
+            }
+        });
+
+        // События MetaMask
+        if (window.ethereum) {
+            ethereum.on('chainChanged', chainId => {
+                currentChainId = parseInt(chainId, 16).toString();
+                updateNetworkDisplay();
+                loadData();
+            });
+            ethereum.on('accountsChanged', () => location.reload());
         }
 
         // Кнопки
         document.getElementById('connect-wallet').addEventListener('click', connectWallet);
-
         document.getElementById('copy-address').addEventListener('click', () => {
-            navigator.clipboard.writeText(currentAccount);
-            alert('Адрес скопирован!');
+            navigator.clipboard.writeText(currentAccount); alert('Скопировано!');
         });
-
-        document.getElementById('copy-again').addEventListener('click', () => {
-            navigator.clipboard.writeText(currentAccount);
-            alert('Адрес скопирован!');
-        });
-
         document.getElementById('disconnect').addEventListener('click', () => {
-            localStorage.clear();
-            location.reload();
+            localStorage.clear(); location.reload();
         });
-
-        // Авто-обновление при смене аккаунта
-        if (window.ethereum) {
-            ethereum.on('accountsChanged', () => location.reload());
-        }
     </script>
 </body>
 </html>
