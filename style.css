@@ -952,3 +952,19 @@ header .logo img {
     color: var(--accent);
     text-decoration: underline;
 }
+
+.portfolio-total {
+    font-size: 1.4rem;
+    font-weight: bold;
+    color: var(--accent);
+    text-align: center;
+    margin: 30px 0;
+    padding: 20px;
+    background: #1e1e1e;
+    border-radius: 15px;
+}
+
+small {
+    color: #888;
+    font-size: 0.9rem;
+}
