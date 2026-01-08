@@ -57,9 +57,7 @@
                 </div>
 
                 <h3>Балансы активов (текущая сеть)</h3>
-                <div class="assets-list" id="balances-list">
-                    <div class="asset-row">Загрузка балансов...</div>
-                </div>
+                <div class="assets-list" id="balances-list"></div>
 
                 <button id="disconnect" class="btn logout-btn">Выйти из кошелька</button>
             </div>
@@ -86,7 +84,7 @@
             '42161': 'ETH'
         };
 
-        // Адреса USDC и USDT на разных сетях (6 decimals)
+        // Адреса USDC и USDT (6 decimals)
         const stableTokens = {
             USDC: {
                 '1': '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
@@ -104,55 +102,56 @@
             }
         };
 
-        // Автозагрузка из localStorage
+        // Автозагрузка
         if (localStorage.getItem('walletConnected') === 'true') {
             currentAccount = localStorage.getItem('walletAddress');
             showConnected();
-            loadBalances();
+            getCurrentChainAndLoad();
         }
 
         async function connectWallet() {
             if (!window.ethereum) {
-                alert('MetaMask не найден! Установи расширение.');
+                alert('Установи MetaMask!');
                 return;
             }
 
             try {
                 const accounts = await ethereum.request({ method: 'eth_requestAccounts' });
                 currentAccount = accounts[0].toLowerCase();
-                const chainHex = await ethereum.request({ method: 'eth_chainId' });
-                currentChainId = parseInt(chainHex, 16).toString();
 
                 localStorage.setItem('walletAddress', currentAccount);
                 localStorage.setItem('walletConnected', 'true');
 
                 showConnected();
-                loadBalances();
+                getCurrentChainAndLoad();
             } catch (err) {
-                alert('Ошибка подключения: ' + err.message);
+                alert('Ошибка: ' + err.message);
             }
+        }
+
+        async function getCurrentChainAndLoad() {
+            const chainHex = await ethereum.request({ method: 'eth_chainId' });
+            currentChainId = parseInt(chainHex, 16).toString();
+            document.getElementById('current-network').textContent = chainNames[currentChainId] || 'Неизвестная сеть';
+            loadBalances();
         }
 
         function showConnected() {
             document.getElementById('no-wallet').style.display = 'none';
             document.getElementById('wallet-connected').style.display = 'block';
             document.getElementById('full-address').textContent = currentAccount;
-            document.getElementById('current-network').textContent = chainNames[currentChainId] || 'Неизвестная сеть';
 
-            // QR-код
             document.getElementById('qr-code').innerHTML = '';
             new QRCode(document.getElementById('qr-code'), {
                 text: currentAccount,
-                width: 220,
-                height: 220,
-                colorDark: "#00ff9d",
-                colorLight: "#1e1e1e"
+                width: 220, height: 220,
+                colorDark: "#00ff9d", colorLight: "#1e1e1e"
             });
         }
 
         async function loadBalances() {
             const list = document.getElementById('balances-list');
-            list.innerHTML = '<div class="asset-row">Загрузка балансов...</div>';
+            list.innerHTML = '<div class="asset-row">Загрузка...</div>';
 
             try {
                 // Нативный токен
@@ -172,33 +171,32 @@
                         }
                     }
                 }
+
+                if (list.children.length === 1 && list.innerHTML.includes('Загрузка')) {
+                    list.innerHTML = '<div class="asset-row">Нет активов в этой сети</div>';
+                }
             } catch (e) {
                 list.innerHTML = '<div class="asset-row">Ошибка загрузки балансов</div>';
                 console.error(e);
             }
         }
 
-        // Универсальная функция для ERC20 баланса
-        async function getTokenBalance(contractAddress) {
-            const abi = [{"constant":true,"inputs":[{"name":"_owner","type":"address"}],"name":"balanceOf","outputs":[{"name":"balance","type":"uint256"}],"type":"function"}];
+        async function getTokenBalance(contract) {
+            const data = '0x70a08231000000000000000000000000' + currentAccount.slice(2);
             try {
-                const balanceHex = await ethereum.request({
-                    method: 'eth_call',
-                    params: [{ to: contractAddress, data: '0x70a08231000000000000000000000000' + currentAccount.slice(2) }, 'latest']
-                });
-                return parseInt(balanceHex, 16) / 1e6; // 6 decimals для USDC/USDT
+                const hex = await ethereum.request({ method: 'eth_call', params: [{ to: contract, data }, 'latest'] });
+                return parseInt(hex, 16) / 1e6;
             } catch {
                 return 0;
             }
         }
 
-        // Автообновление при смене сети или аккаунта
+        // Смена сети/аккаунта
         if (window.ethereum) {
             ethereum.on('chainChanged', () => location.reload());
             ethereum.on('accountsChanged', () => location.reload());
         }
 
-        // Кнопки
         document.getElementById('connect-wallet').addEventListener('click', connectWallet);
         document.getElementById('copy-address').addEventListener('click', () => {
             navigator.clipboard.writeText(currentAccount);
