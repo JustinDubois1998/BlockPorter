@@ -10,14 +10,26 @@
     <script src="https://cdn.jsdelivr.net/npm/qrcode.js@1.0.0/lib/qrcode.min.js"></script>
 </head>
 <body>
-    <!-- Тот же header -->
+    <header>
+        <div class="container">
+            <a href="index.html" class="logo">
+                <img src="logo.svg" alt="BlockPorter" height="40">
+            </a>
+            <nav>
+                <a href="index.html">Главная</a>
+                <a href="dashboard.html">Обмен</a>
+                <a href="about.html">О проекте</a>
+                <span id="user-info">Профиль</span>
+            </nav>
+        </div>
+    </header>
 
     <main class="container profile-main">
         <div class="profile-card">
             <h2>Личный кабинет</h2>
 
             <div id="no-wallet" class="connect-section">
-                <p>Подключите кошелёк</p>
+                <p>Подключите кошелёк для просмотра данных</p>
                 <button id="connect-wallet" class="btn auth-main-btn metamask-btn">
                     <img src="https://upload.wikimedia.org/wikipedia/commons/3/36/MetaMask_Fox.svg" alt="MetaMask" class="wallet-icon">
                     Подключить кошелёк
@@ -42,11 +54,11 @@
                     <div id="qr-code"></div>
                 </div>
 
-                <h3>Балансы (все токены)</h3>
-                <div class="assets-list" id="balances-list">Загрузка...</div>
+                <h3>Балансы (все токены с балансом >0)</h3>
+                <div class="assets-list" id="balances-list">Загрузка балансов...</div>
 
                 <h3>Последние транзакции</h3>
-                <div class="tx-history" id="tx-history">Загрузка...</div>
+                <div class="tx-history" id="tx-history">Загрузка истории...</div>
 
                 <button id="disconnect" class="btn logout-btn">Выйти</button>
             </div>
@@ -54,16 +66,21 @@
     </main>
 
     <script type="module">
-        // ВСТАВЬ СВОЙ MORALIS API KEY СЮДА!
-        const MORALIS_API_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJub25jZSI6IjQxNmYwZTIyLWU4NzktNGMyYi05NzRkLTlkODA4MjMyY2Q4ZCIsIm9yZ0lkIjoiNDg5MzI2IiwidXNlcklkIjoiNTAzNDU3IiwidHlwZUlkIjoiZmQ1M2E1ZjUtOTIxYi00OTI5LTk2OTItNDcyMDhhMzQ2MzA4IiwidHlwZSI6IlBST0pFQ1QiLCJpYXQiOjE3Njc5MDU2ODMsImV4cCI6NDkyMzY2NTY4M30.y6UU-cK_dELgx377LsGND73mfSMyup6iDidhJ4sGR1U';
+        // <-- ВСТАВЬ СВОЙ MORALIS API KEY СЮДА! (из дашборда moralis.io)
+        const MORALIS_API_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJub25jZSI6IjQxNmYwZTIyLWU4NzktNGMyYi05NzRkLTlkODA4MjMyY2Q4ZCIsIm9yZ0lkIjoiNDg5MzI2IiwidXNlcklkIjoiNTAzNDU3IiwidHlwZUlkIjoiZmQ1M2E1ZjUtOTIxYi00OTI5LTk2OTItNDcyMDhhMzQ2MzA4IiwidHlwZSI6IlBST0pFQ1QiLCJpYXQiOjE3Njc5MDU2ODMsImV4cCI6NDkyMzY2NTY4M30.y6UU-cK_dELgx377LsGND73mfSMyup6iDidhJ4sGR1U'; // Например: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...'
 
         let currentAccount = null;
         let currentChainId = null;
 
+        const chainNames = {
+            1: 'Ethereum', 56: 'BSC', 137: 'Polygon', 10: 'Optimism', 42161: 'Arbitrum'
+        };
+
+        // Авто-подключение из localStorage
         if (localStorage.getItem('walletConnected') === 'true') {
             currentAccount = localStorage.getItem('walletAddress');
             showConnected();
-            loadMoralisData();
+            await loadData();
         }
 
         async function connectWallet() {
@@ -79,7 +96,7 @@
                 localStorage.setItem('walletConnected', 'true');
 
                 showConnected();
-                loadMoralisData();
+                await loadData();
             } catch (err) {
                 alert('Ошибка подключения: ' + err.message);
             }
@@ -90,69 +107,90 @@
             document.getElementById('wallet-connected').style.display = 'block';
             document.getElementById('full-address').textContent = currentAccount;
 
+            document.getElementById('current-network').textContent = `Сеть: ${chainNames[currentChainId] || 'Неизвестная'}`;
+
+            // QR-код
             document.getElementById('qr-code').innerHTML = '';
             new QRCode(document.getElementById('qr-code'), {
                 text: currentAccount,
                 width: 220, height: 220,
                 colorDark: "#00ff9d", colorLight: "#1e1e1e"
             });
-
-            document.getElementById('current-network').textContent = `Сеть: ${getChainName(currentChainId)}`;
         }
 
-        function getChainName(id) {
-            const names = {1: 'Ethereum', 56: 'BSC', 137: 'Polygon', 10: 'Optimism', 42161: 'Arbitrum'};
-            return names[id] || 'Неизвестная';
-        }
-
-        async function loadMoralisData() {
-            if (!currentAccount || !MORALIS_API_KEY.includes('eyJ')) {
-                document.getElementById('balances-list').innerHTML = 'Вставьте Moralis API Key!';
+        async function loadData() {
+            if (!currentAccount || !MORALIS_API_KEY || MORALIS_API_KEY === 'твой_ключ_здесь') {
+                document.getElementById('balances-list').innerHTML = '<div class="asset-row">Вставь Moralis API Key!</div>';
+                document.getElementById('tx-history').innerHTML = '';
                 return;
             }
 
-            const headers = { 'x-api-key': MORALIS_API_KEY, 'accept': 'application/json' };
+            const headers = {
+                'accept': 'application/json',
+                'X-API-Key': MORALIS_API_KEY
+            };
 
-            // Балансы всех токенов
+            const chainParam = chainNames[currentChainId] ? `chain=${chainNames[currentChainId].toLowerCase().replace(' ', '-')}` : '';
+
+            // === Балансы всех токенов ===
             try {
-                const balRes = await fetch(`https://deep-index.moralis.io/api/v2.2/wallets/balances?chain=0x${currentChainId.toString(16)}&wallet_addresses[]=${currentAccount}`, { headers });
+                const balUrl = `https://deep-index.moralis.io/api/v2.2/wallets/${currentAccount}/tokens?${chainParam}`;
+                const balRes = await fetch(balUrl, { headers });
+                if (!balRes.ok) throw new Error('Ошибка API: ' + balRes.status);
                 const balData = await balRes.json();
+
                 const list = document.getElementById('balances-list');
                 list.innerHTML = '';
                 balData.forEach(token => {
-                    if (parseFloat(token.balance_formatted) > 0) {
-                        const usd = token.usd_value ? ` (~$${parseFloat(token.usd_value).toFixed(2)})` : '';
-                        list.innerHTML += `<div class="asset-row"><span>${token.token_symbol || token.token_name}</span><strong>${token.balance_formatted} ${usd}</strong></div>`;
+                    const balance = parseFloat(token.balance_formatted || 0);
+                    if (balance > 0) {
+                        const usd = token.usd_price ? ` (~$${token.usd_price.toFixed(2)})` : '';
+                        list.innerHTML += `<div class="asset-row"><span>${token.symbol} ${token.name ? '(' + token.name + ')' : ''}</span><strong>${balance.toFixed(4)} ${usd}</strong></div>`;
                     }
                 });
+
+                if (list.innerHTML === '') list.innerHTML = '<div class="asset-row">Нет токенов с балансом</div>';
             } catch (e) {
-                document.getElementById('balances-list').innerHTML = 'Ошибка балансов';
+                document.getElementById('balances-list').innerHTML = `<div class="asset-row">Ошибка: ${e.message}</div>`;
             }
 
-            // История транзакций
+            // === История транзакций ===
             try {
-                const txRes = await fetch(`https://deep-index.moralis.io/api/v2.2/wallets/history?chain=0x${currentChainId.toString(16)}&wallet_addresses[]=${currentAccount}&order=DESC`, { headers });
+                const txUrl = `https://deep-index.moralis.io/api/v2.2/wallets/${currentAccount}/history?${chainParam}&order=DESC`;
+                const txRes = await fetch(txUrl, { headers });
+                if (!txRes.ok) throw new Error('Ошибка API: ' + txRes.status);
                 const txData = await txRes.json();
+
                 const txDiv = document.getElementById('tx-history');
                 txDiv.innerHTML = '';
-                txData.slice(0, 10).forEach(tx => {
+                txData.result.slice(0, 10).forEach(tx => {
                     const date = new Date(tx.block_timestamp).toLocaleString('ru-RU');
-                    const value = tx.value ? (parseInt(tx.value)/1e18).toFixed(4) : '0';
-                    txDiv.innerHTML += `<div class="asset-row tx-row"><div><strong>${date}</strong><br>${tx.hash.slice(0,10)}...</div><strong>${value} ${getChainName(currentChainId)}</strong></div>`;
+                    const summary = tx.summary || 'Транзакция';
+                    txDiv.innerHTML += `<div class="asset-row tx-row"><div><strong>${date}</strong><br>${summary}</div></div>`;
                 });
+
+                if (txData.result.length === 0) txDiv.innerHTML = '<div class="asset-row">Нет транзакций</div>';
             } catch (e) {
-                document.getElementById('tx-history').innerHTML = 'Ошибка истории';
+                document.getElementById('tx-history').innerHTML = `<div class="asset-row">Ошибка: ${e.message}</div>`;
             }
         }
 
-        // События
+        // События смены сети/аккаунта
         if (window.ethereum) {
             ethereum.on('chainChanged', () => location.reload());
+            ethereum.on('accountsChanged', () => location.reload());
         }
 
+        // Кнопки
         document.getElementById('connect-wallet').addEventListener('click', connectWallet);
-        document.getElementById('copy-address').addEventListener('click', () => { navigator.clipboard.writeText(currentAccount); alert('Скопировано!'); });
-        document.getElementById('disconnect').addEventListener('click', () => { localStorage.clear(); location.reload(); });
+        document.getElementById('copy-address').addEventListener('click', () => {
+            navigator.clipboard.writeText(currentAccount);
+            alert('Адрес скопирован!');
+        });
+        document.getElementById('disconnect').addEventListener('click', () => {
+            localStorage.clear();
+            location.reload();
+        });
     </script>
 </body>
 </html>
