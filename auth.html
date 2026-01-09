@@ -10,12 +10,7 @@
 
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js";
-    import { 
-      getAuth, 
-      GoogleAuthProvider,
-      signInWithPopup,
-      onAuthStateChanged
-    } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-auth.js";
+    import { getAuth, GoogleAuthProvider, signInWithPopup, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-auth.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyBHWbr9rlbKUiTY6qEYpLEqfy07W1b3Yqs",
@@ -30,48 +25,36 @@
     const auth = getAuth(app);
     const googleProvider = new GoogleAuthProvider();
 
-    // Если уже авторизован — сразу в профиль
     onAuthStateChanged(auth, user => {
-      if (user) {
-        window.location.href = 'profile.html';
-      }
+      if (user) window.location.href = 'profile.html';
     });
 
     function showLoading(show) {
       document.getElementById('loading').style.display = show ? 'flex' : 'none';
     }
 
-    // Google вход
     document.getElementById('google-login')?.addEventListener('click', async () => {
       showLoading(true);
       try {
         await signInWithPopup(auth, googleProvider);
         window.location.href = 'profile.html';
       } catch (err) {
-        alert('Ошибка Google входа: ' + err.message);
+        alert('Ошибка: ' + err.message);
       } finally {
         showLoading(false);
       }
     });
 
-    // MetaMask вход
     document.getElementById('metamask-login')?.addEventListener('click', async () => {
-      if (!window.ethereum) {
-        alert('MetaMask не установлен!');
-        return;
-      }
-
+      if (!window.ethereum) return alert('Установите MetaMask');
       showLoading(true);
       try {
         const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
-        const address = accounts[0].toLowerCase();
-
-        localStorage.setItem('walletAddress', address);
+        localStorage.setItem('walletAddress', accounts[0].toLowerCase());
         localStorage.setItem('walletConnected', 'true');
-
         window.location.href = 'profile.html';
       } catch (err) {
-        alert('Ошибка MetaMask: ' + err.message);
+        alert('Ошибка: ' + err.message);
       } finally {
         showLoading(false);
       }
@@ -79,44 +62,26 @@
   </script>
 </head>
 <body>
-  <header>
-    <div class="container">
-      <a href="index.html" class="logo">
-        <img src="logo.svg" alt="BlockPorter" height="40"/>
-      </a>
-      <nav>
-        <a href="index.html">Главная</a>
-        <a href="dashboard.html">Обмен</a>
-        <a href="about.html">О проекте</a>
-      </nav>
-    </div>
-  </header>
+  <header><!-- Тот же header как в index.html --></header>
 
   <main class="auth-main">
     <div class="auth-card">
-      <div class="auth-icon-big">
-        <i class="fas fa-exchange-alt"></i>
-      </div>
-      <h2>Добро пожаловать в BlockPorter</h2>
-      <p class="auth-subtitle">Быстрый кроссчейн обмен без посредников</p>
+      <h2>Вход в BlockPorter</h2>
+      <p>Выберите удобный способ</p>
 
-      <div class="auth-options">
-        <button id="google-login" class="btn auth-btn google-btn">
-          <i class="fab fa-google"></i> Войти через Google
-        </button>
+      <button id="google-login" class="btn auth-btn google-btn">
+        <i class="fab fa-google"></i> Через Google
+      </button>
 
-        <div class="divider"><span>или</span></div>
+      <div class="divider"><span>или</span></div>
 
-        <button id="metamask-login" class="btn auth-btn metamask-btn">
-          <img src="https://upload.wikimedia.org/wikipedia/commons/3/36/MetaMask_Fox.svg" alt="MetaMask" class="wallet-icon"/>
-          Войти через MetaMask
-        </button>
-      </div>
+      <button id="metamask-login" class="btn auth-btn metamask-btn">
+        <img src="https://upload.wikimedia.org/wikipedia/commons/3/36/MetaMask_Fox.svg" alt="MetaMask" class="wallet-icon"/>
+        Через MetaMask
+      </button>
     </div>
 
-    <div id="loading" class="spinner">
-      <div class="spinner-circle"></div>
-    </div>
+    <div id="loading" class="spinner"><div class="spinner-circle"></div></div>
   </main>
 </body>
 </html>
