@@ -3,231 +3,141 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BlockPorter - Кроссчейн обмен</title>
+    <title>BlockPorter - Обмен</title>
     <link rel="stylesheet" href="style.css">
-    <link rel="manifest" href="/BlockPorter/manifest.json">
-    
-    <!-- Firebase Auth (защита страницы) -->
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js";
-        import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-auth.js";
-
-        const firebaseConfig = {
-            apiKey: "AIzaSyBHWbr9rlbKUiTY6qEYpLEqfy07W1b3Yqs",
-            authDomain: "blockporter-1.firebaseapp.com",
-            projectId: "blockporter-1",
-            storageBucket: "blockporter-1.firebasestorage.app",
-            messagingSenderId: "873745031112",
-            appId: "1:873745031112:web:0dd56950729a4d4f532afd"
-        };
-
-        const app = initializeApp(firebaseConfig);
-        const auth = getAuth(app);
-
-        onAuthStateChanged(auth, user => {
-            if (!user) {
-                alert('Войдите в аккаунт, чтобы использовать обмен');
-                window.location.href = 'auth.html';
-            }
-        });
-    </script>
+    <link rel="icon" href="logo.svg" type="image/svg+xml">
 </head>
 <body>
     <header>
         <div class="container">
-            <h1><a href="index.html" style="color: var(--accent); text-decoration:none;">BlockPorter</a></h1>
+            <a href="index.html" class="logo">
+                <img src="logo.svg" alt="BlockPorter" height="40">
+            </a>
             <nav>
                 <a href="index.html">Главная</a>
                 <a href="dashboard.html">Обмен</a>
                 <a href="about.html">О проекте</a>
-                <span id="user-info"><a href="auth.html">Войти</a></span>
+                <a href="profile.html">Профиль</a>
             </nav>
         </div>
     </header>
 
-    <main class="container">
-        <section class="swap-box">
-            <h2>Кроссчейн обмен</h2>
+    <main class="container swap-main">
+        <section class="swap-container">
+            <h1>Кроссчейн обмен</h1>
+            <p class="subtitle">Быстро, безопасно, без посредников</p>
 
-            <!-- Блок подключения MetaMask -->
-            <div class="wallet-connect">
-                <button id="connect-wallet" class="btn">
-                    <span id="connect-text">Подключить MetaMask</span>
+            <!-- Подключение кошелька -->
+            <div id="wallet-status" class="wallet-status">
+                <button id="connect-btn" class="btn connect-btn">
+                    <img src="https://upload.wikimedia.org/wikipedia/commons/3/36/MetaMask_Fox.svg" alt="MetaMask" class="wallet-icon">
+                    Подключить кошелёк
                 </button>
-
-                <div id="wallet-info" class="wallet-info-card">
-                    <p>Сеть: <strong id="network-name">—</strong></p>
-                    <p>Адрес: <strong id="wallet-address">—</strong></p>
-                    <p>Баланс: <strong id="wallet-balance">0</strong> <span id="balance-token">ETH</span></p>
+                <div id="connected-info" style="display:none;">
+                    <span>Подключено: <strong id="short-address"></strong></span>
+                    <button id="disconnect-btn" class="btn small">Отключить</button>
                 </div>
             </div>
 
             <!-- Форма обмена -->
-            <div class="swap-form">
+            <div class="swap-form" id="swap-form" style="display:none;">
                 <div class="swap-row">
-                    <div class="token-select">
+                    <div class="token-block">
                         <label>Отдаёте</label>
-                        <div class="select-group">
-                            <select id="from-chain">
-                                <option value="1">Ethereum</option>
-                                <option value="56">BSC</option>
-                                <option value="137">Polygon</option>
-                                <option value="42161">Arbitrum</option>
-                            </select>
-                            <select id="from-token">
-                                <option>ETH</option>
-                                <option>USDC</option>
-                                <option>USDT</option>
-                            </select>
-                        </div>
+                        <select id="from-token">
+                            <option>ETH</option>
+                            <option>USDC</option>
+                            <option>USDT</option>
+                        </select>
                         <input type="number" id="from-amount" placeholder="0.0" min="0" step="any">
                     </div>
-                </div>
 
-                <div class="swap-arrow">↓</div>
+                    <div class="swap-arrow">→</div>
 
-                <div class="swap-row">
-                    <div class="token-select">
+                    <div class="token-block">
                         <label>Получаете</label>
-                        <div class="select-group">
-                            <select id="to-chain">
-                                <option value="56">BSC</option>
-                                <option value="1">Ethereum</option>
-                                <option value="137">Polygon</option>
-                                <option value="42161">Arbitrum</option>
-                            </select>
-                            <select id="to-token">
-                                <option>BNB</option>
-                                <option>USDC</option>
-                                <option>USDT</option>
-                            </select>
-                        </div>
+                        <select id="to-token">
+                            <option>USDC</option>
+                            <option>ETH</option>
+                            <option>USDT</option>
+                        </select>
                         <input type="number" id="to-amount" placeholder="0.0" disabled>
                     </div>
                 </div>
 
-                <div id="rate-info" class="rate-info">
-                    <p>Курс: 1 <span id="rate-from">ETH</span> ≈ <span id="rate-value">0.9900</span> <span id="rate-to">BNB</span></p>
-                    <p>Комиссия сети: ~0.1–0.3%</p>
+                <div class="rate-info">
+                    <p>Курс: <span id="rate-display">—</span></p>
+                    <p>Комиссия: ~0.3%</p>
                 </div>
 
-                <button id="swap-button" class="btn swap-btn" disabled>Обменять</button>
+                <button id="swap-btn" class="btn main-swap-btn" disabled>Обменять</button>
             </div>
+
+            <p class="tip" id="tip-not-connected">Подключите кошелёк, чтобы начать обмен</p>
         </section>
     </main>
 
-    <footer>
-        <div class="container">
-            <p>&copy; 2026 BlockPorter</p>
-        </div>
-    </footer>
-
-    <!-- Основной скрипт MetaMask и логика обмена -->
     <script type="module">
-        // Переменные
         let currentAccount = null;
-        let currentChainId = null;
 
-        // Элементы
-        const connectBtn = document.getElementById('connect-wallet');
-        const connectText = document.getElementById('connect-text');
-        const walletInfo = document.getElementById('wallet-info');
-        const networkName = document.getElementById('network-name');
-        const walletAddress = document.getElementById('wallet-address');
-        const walletBalance = document.getElementById('wallet-balance');
+        // Проверка сохранённого подключения
+        if (localStorage.getItem('walletConnected') === 'true') {
+            currentAccount = localStorage.getItem('walletAddress');
+            showConnected();
+            enableSwap();
+        }
 
-        const fromAmount = document.getElementById('from-amount');
-        const toAmount = document.getElementById('to-amount');
-        const swapButton = document.getElementById('swap-button');
-        const rateInfo = document.getElementById('rate-info');
-        const rateValue = document.getElementById('rate-value');
-        const rateFrom = document.getElementById('rate-from');
-        const rateTo = document.getElementById('rate-to');
-
-        // Названия сетей
-        const chainNames = {
-            '1': 'Ethereum Mainnet',
-            '56': 'BSC',
-            '137': 'Polygon',
-            '42161': 'Arbitrum One'
-        };
-
-        // Подключение кошелька
         async function connectWallet() {
-            if (!window.ethereum) {
-                alert('MetaMask не найден! Установи: https://metamask.io');
-                window.open('https://metamask.io/download/', '_blank');
-                return;
-            }
+            if (!window.ethereum) return alert('MetaMask не найден!');
 
             try {
                 const accounts = await ethereum.request({ method: 'eth_requestAccounts' });
-                currentAccount = accounts[0];
-                currentChainId = await ethereum.request({ method: 'eth_chainId' });
-                currentChainId = parseInt(currentChainId, 16).toString();
+                currentAccount = accounts[0].toLowerCase();
 
-                await updateWalletDisplay();
-                connectText.textContent = 'Подключено';
-                connectBtn.disabled = true;
-                walletInfo.style.display = 'block';
-                swapButton.disabled = false;
-            } catch (error) {
-                alert('Ошибка подключения: ' + error.message);
+                localStorage.setItem('walletAddress', currentAccount);
+                localStorage.setItem('walletConnected', 'true');
+
+                showConnected();
+                enableSwap();
+            } catch (err) {
+                alert('Ошибка подключения');
             }
         }
 
-        // Обновление информации о кошельке
-        async function updateWalletDisplay() {
-            walletAddress.textContent = currentAccount.slice(0, 6) + '...' + currentAccount.slice(-4);
-            networkName.textContent = chainNames[currentChainId] || 'Неизвестная сеть';
-
-            const balance = await ethereum.request({ method: 'eth_getBalance', params: [currentAccount, 'latest'] });
-            const ethBalance = parseInt(balance, 16) / 1e18;
-            walletBalance.textContent = ethBalance.toFixed(4);
+        function showConnected() {
+            document.getElementById('connect-btn').style.display = 'none';
+            document.getElementById('connected-info').style.display = 'flex';
+            document.getElementById('short-address').textContent = 
+                currentAccount.slice(0,6) + '...' + currentAccount.slice(-4);
         }
 
-        // События MetaMask
-        connectBtn.addEventListener('click', connectWallet);
-
-        if (window.ethereum) {
-            ethereum.on('accountsChanged', () => location.reload());
-            ethereum.on('chainChanged', () => location.reload());
-
-            // Автоподключение, если уже есть разрешение
-            ethereum.request({ method: 'eth_accounts' }).then(accounts => {
-                if (accounts.length > 0) connectWallet();
-            });
+        function enableSwap() {
+            document.getElementById('swap-form').style.display = 'block';
+            document.getElementById('tip-not-connected').style.display = 'none';
+            document.getElementById('swap-btn').disabled = false;
         }
 
-        // Расчёт получаемой суммы (имитация)
-        fromAmount.addEventListener('input', () => {
-            const amount = parseFloat(fromAmount.value) || 0;
-            const fakeRate = 0.985 + Math.random() * 0.02; // от 0.985 до 1.005
-            toAmount.value = (amount * fakeRate).toFixed(6);
+        function updateRate() {
+            const from = document.getElementById('from-amount').value || 0;
+            const fakeRate = 0.98 + Math.random() * 0.04;
+            document.getElementById('to-amount').value = (from * fakeRate).toFixed(6);
+            document.getElementById('rate-display').textContent = `1 ${document.getElementById('from-token').value} ≈ ${fakeRate.toFixed(4)} ${document.getElementById('to-token').value}`;
+        }
 
-            if (amount > 0) {
-                rateInfo.style.display = 'block';
-                rateValue.textContent = fakeRate.toFixed(4);
-                rateFrom.textContent = document.getElementById('from-token').value;
-                rateTo.textContent = document.getElementById('to-token').value;
-            } else {
-                rateInfo.style.display = 'none';
-            }
+        document.getElementById('connect-btn').addEventListener('click', connectWallet);
+
+        document.getElementById('disconnect-btn').addEventListener('click', () => {
+            localStorage.clear();
+            location.reload();
         });
 
-        // Кнопка обмена — симуляция
-        swapButton.addEventListener('click', () => {
-            const fromAmt = fromAmount.value || '0';
-            const toAmt = toAmount.value || '0';
-            const fromTok = document.getElementById('from-token').value;
-            const toTok = document.getElementById('to-token').value;
-            const fromNet = document.querySelector('#from-chain option:checked').textContent;
-            const toNet = document.querySelector('#to-chain option:checked').textContent;
+        document.getElementById('from-amount').addEventListener('input', updateRate);
+        document.getElementById('from-token').addEventListener('change', updateRate);
+        document.getElementById('to-token').addEventListener('change', updateRate);
 
-            alert(`Симуляция обмена выполнена!\n\n` +
-                  `Отправлено: ${fromAmt} ${fromTok} из ${fromNet}\n` +
-                  `Получено: ${toAmt} ${toTok} в ${toNet}\n\n` +
-                  `В реальном приложении здесь будет транзакция через кроссчейн-бридж.`);
+        document.getElementById('swap-btn').addEventListener('click', () => {
+            if (!currentAccount) return alert('Кошелёк не подключён');
+            alert(`Симуляция свопа:\nОтдаёте ${document.getElementById('from-amount').value} ${document.getElementById('from-token').value}\nПолучаете ${document.getElementById('to-amount').value} ${document.getElementById('to-token').value}`);
         });
     </script>
 </body>
