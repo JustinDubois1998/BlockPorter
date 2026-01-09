@@ -1,144 +1,124 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BlockPorter - Обмен</title>
-    <link rel="stylesheet" href="style.css">
-    <link rel="icon" href="logo.svg" type="image/svg+xml">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>BlockPorter - Обмен</title>
+  <link rel="stylesheet" href="style.css"/>
+  <link rel="icon" href="logo.svg" type="image/svg+xml"/>
 </head>
 <body>
-    <header>
-        <div class="container">
-            <a href="index.html" class="logo">
-                <img src="logo.svg" alt="BlockPorter" height="40">
-            </a>
-            <nav>
-                <a href="index.html">Главная</a>
-                <a href="dashboard.html">Обмен</a>
-                <a href="about.html">О проекте</a>
-                <a href="profile.html">Профиль</a>
-            </nav>
+  <header>
+    <div class="container">
+      <a href="index.html" class="logo">
+        <img src="logo.svg" alt="BlockPorter" height="40"/>
+      </a>
+      <nav>
+        <a href="index.html">Главная</a>
+        <a href="dashboard.html">Обмен</a>
+        <a href="about.html">О проекте</a>
+        <a href="profile.html" id="profile-link">Профиль</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container">
+    <section class="swap-section">
+      <h1>Кроссчейн обмен</h1>
+
+      <div class="wallet-connect">
+        <button id="connect-wallet" class="btn connect-btn">
+          <img src="https://upload.wikimedia.org/wikipedia/commons/3/36/MetaMask_Fox.svg" alt="MetaMask" class="wallet-icon"/>
+          Подключить кошелёк
+        </button>
+        <div id="wallet-info" style="display:none;">
+          <span id="wallet-address-short"></span>
+          <button id="disconnect-wallet" class="btn small">Отключить</button>
         </div>
-    </header>
+      </div>
 
-    <main class="container swap-main">
-        <section class="swap-container">
-            <h1>Кроссчейн обмен</h1>
-            <p class="subtitle">Быстро, безопасно, без посредников</p>
+      <div class="swap-form">
+        <div class="swap-row">
+          <label>Отдаёте</label>
+          <div class="swap-input-group">
+            <select id="from-chain">
+              <option>Ethereum</option>
+              <option>BSC</option>
+              <option>Polygon</option>
+              <option>Optimism</option>
+            </select>
+            <input type="number" id="from-amount" placeholder="0.0"/>
+            <select id="from-token">
+              <option>ETH</option>
+              <option>USDC</option>
+              <option>USDT</option>
+            </select>
+          </div>
+        </div>
 
-            <!-- Подключение кошелька -->
-            <div id="wallet-status" class="wallet-status">
-                <button id="connect-btn" class="btn connect-btn">
-                    <img src="https://upload.wikimedia.org/wikipedia/commons/3/36/MetaMask_Fox.svg" alt="MetaMask" class="wallet-icon">
-                    Подключить кошелёк
-                </button>
-                <div id="connected-info" style="display:none;">
-                    <span>Подключено: <strong id="short-address"></strong></span>
-                    <button id="disconnect-btn" class="btn small">Отключить</button>
-                </div>
-            </div>
+        <div class="swap-arrow">↓</div>
 
-            <!-- Форма обмена -->
-            <div class="swap-form" id="swap-form" style="display:none;">
-                <div class="swap-row">
-                    <div class="token-block">
-                        <label>Отдаёте</label>
-                        <select id="from-token">
-                            <option>ETH</option>
-                            <option>USDC</option>
-                            <option>USDT</option>
-                        </select>
-                        <input type="number" id="from-amount" placeholder="0.0" min="0" step="any">
-                    </div>
+        <div class="swap-row">
+          <label>Получаете</label>
+          <div class="swap-input-group">
+            <select id="to-chain">
+              <option>BSC</option>
+              <option>Ethereum</option>
+              <option>Polygon</option>
+              <option>Optimism</option>
+            </select>
+            <input type="number" id="to-amount" placeholder="0.0" disabled/>
+            <select id="to-token">
+              <option>USDC</option>
+              <option>USDT</option>
+              <option>ETH</option>
+            </select>
+          </div>
+        </div>
 
-                    <div class="swap-arrow">→</div>
+        <button id="swap-button" class="btn swap-btn" disabled>Обменять</button>
 
-                    <div class="token-block">
-                        <label>Получаете</label>
-                        <select id="to-token">
-                            <option>USDC</option>
-                            <option>ETH</option>
-                            <option>USDT</option>
-                        </select>
-                        <input type="number" id="to-amount" placeholder="0.0" disabled>
-                    </div>
-                </div>
+        <div id="swap-status" style="margin-top:20px; color:#aaa;"></div>
+      </div>
+    </section>
+  </main>
 
-                <div class="rate-info">
-                    <p>Курс: <span id="rate-display">—</span></p>
-                    <p>Комиссия: ~0.3%</p>
-                </div>
+  <script>
+    let currentAccount = null;
 
-                <button id="swap-btn" class="btn main-swap-btn" disabled>Обменять</button>
-            </div>
+    const connectBtn = document.getElementById('connect-wallet');
+    const walletInfo = document.getElementById('wallet-info');
+    const addressShort = document.getElementById('wallet-address-short');
+    const disconnectBtn = document.getElementById('disconnect-wallet');
+    const swapBtn = document.getElementById('swap-button');
 
-            <p class="tip" id="tip-not-connected">Подключите кошелёк, чтобы начать обмен</p>
-        </section>
-    </main>
+    connectBtn.addEventListener('click', async () => {
+      if (!window.ethereum) return alert('Установите MetaMask');
 
-    <script type="module">
-        let currentAccount = null;
+      try {
+        const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+        currentAccount = accounts[0];
+        addressShort.textContent = currentAccount.slice(0,6) + '...' + currentAccount.slice(-4);
+        walletInfo.style.display = 'block';
+        connectBtn.style.display = 'none';
+        swapBtn.disabled = false;
+      } catch (err) {
+        alert('Ошибка подключения');
+      }
+    });
 
-        // Проверка сохранённого подключения
-        if (localStorage.getItem('walletConnected') === 'true') {
-            currentAccount = localStorage.getItem('walletAddress');
-            showConnected();
-            enableSwap();
-        }
+    disconnectBtn.addEventListener('click', () => {
+      currentAccount = null;
+      walletInfo.style.display = 'none';
+      connectBtn.style.display = 'block';
+      swapBtn.disabled = true;
+    });
 
-        async function connectWallet() {
-            if (!window.ethereum) return alert('MetaMask не найден!');
-
-            try {
-                const accounts = await ethereum.request({ method: 'eth_requestAccounts' });
-                currentAccount = accounts[0].toLowerCase();
-
-                localStorage.setItem('walletAddress', currentAccount);
-                localStorage.setItem('walletConnected', 'true');
-
-                showConnected();
-                enableSwap();
-            } catch (err) {
-                alert('Ошибка подключения');
-            }
-        }
-
-        function showConnected() {
-            document.getElementById('connect-btn').style.display = 'none';
-            document.getElementById('connected-info').style.display = 'flex';
-            document.getElementById('short-address').textContent = 
-                currentAccount.slice(0,6) + '...' + currentAccount.slice(-4);
-        }
-
-        function enableSwap() {
-            document.getElementById('swap-form').style.display = 'block';
-            document.getElementById('tip-not-connected').style.display = 'none';
-            document.getElementById('swap-btn').disabled = false;
-        }
-
-        function updateRate() {
-            const from = document.getElementById('from-amount').value || 0;
-            const fakeRate = 0.98 + Math.random() * 0.04;
-            document.getElementById('to-amount').value = (from * fakeRate).toFixed(6);
-            document.getElementById('rate-display').textContent = `1 ${document.getElementById('from-token').value} ≈ ${fakeRate.toFixed(4)} ${document.getElementById('to-token').value}`;
-        }
-
-        document.getElementById('connect-btn').addEventListener('click', connectWallet);
-
-        document.getElementById('disconnect-btn').addEventListener('click', () => {
-            localStorage.clear();
-            location.reload();
-        });
-
-        document.getElementById('from-amount').addEventListener('input', updateRate);
-        document.getElementById('from-token').addEventListener('change', updateRate);
-        document.getElementById('to-token').addEventListener('change', updateRate);
-
-        document.getElementById('swap-btn').addEventListener('click', () => {
-            if (!currentAccount) return alert('Кошелёк не подключён');
-            alert(`Симуляция свопа:\nОтдаёте ${document.getElementById('from-amount').value} ${document.getElementById('from-token').value}\nПолучаете ${document.getElementById('to-amount').value} ${document.getElementById('to-token').value}`);
-        });
-    </script>
+    // Простая симуляция свопа
+    swapBtn.addEventListener('click', () => {
+      if (!currentAccount) return alert('Подключите кошелёк');
+      alert('Симуляция обмена выполнена! (реальный своп в разработке)');
+    });
+  </script>
 </body>
 </html>
