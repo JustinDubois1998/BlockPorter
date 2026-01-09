@@ -26,7 +26,7 @@
     <div class="swap-card glass">
       <h1>Кроссчейн обмен</h1>
 
-      <!-- Блок подключения кошелька -->
+      <!-- Подключение кошелька -->
       <div class="wallet-connect">
         <button id="connect-wallet" class="btn connect-btn">
           <img src="https://upload.wikimedia.org/wikipedia/commons/3/36/MetaMask_Fox.svg" alt="MetaMask" class="wallet-icon small"/>
@@ -44,22 +44,22 @@
         <div class="swap-input">
           <div class="input-header">
             <label>Отдаёте</label>
-            <span class="balance-hint">Баланс: <strong id="from-balance">—</strong></span>
           </div>
           <div class="input-row">
             <input type="number" id="from-amount" placeholder="0.0" step="any" min="0"/>
             <select id="from-asset">
               <option>ETH</option>
-              <option>USDC</option>
               <option>USDT</option>
-              <option>MATIC</option>
+              <option>USDC</option>
+              <option>TON</option>
             </select>
           </div>
           <select id="from-chain" class="chain-select">
-            <option>Ethereum</option>
-            <option>BSC</option>
-            <option>Polygon</option>
-            <option>Optimism</option>
+            <option value="ethereum">Ethereum</option>
+            <option value="bsc">BSC</option>
+            <option value="polygon">Polygon</option>
+            <option value="optimism">Optimism</option>
+            <option value="ton">TON</option>
           </select>
         </div>
 
@@ -78,28 +78,30 @@
           <div class="input-row">
             <input type="number" id="to-amount" placeholder="0.0" disabled/>
             <select id="to-asset">
-              <option>USDC</option>
               <option>USDT</option>
+              <option>USDC</option>
               <option>ETH</option>
-              <option>BNB</option>
+              <option>TON</option>
             </select>
           </div>
           <select id="to-chain" class="chain-select">
-            <option>BSC</option>
-            <option>Ethereum</option>
-            <option>Polygon</option>
-            <option>Optimism</option>
+            <option value="ton">TON</option>
+            <option value="bsc">BSC</option>
+            <option value="ethereum">Ethereum</option>
+            <option value="polygon">Polygon</option>
+            <option value="optimism">Optimism</option>
           </select>
+
+          <!-- Поле адреса TON (появляется только если выбрана TON) -->
+          <div id="ton-address-field" class="ton-field" style="display:none; margin-top:15px;">
+            <label>Адрес TON-кошелька (обязательно)</label>
+            <input type="text" id="ton-receiver-address" placeholder="EQ... или UQ..." />
+          </div>
         </div>
 
-        <!-- Кнопка обмена -->
-        <button id="swap-btn" class="btn swap-btn" disabled>
-          Обменять
-        </button>
-
-        <div id="rate-info" class="rate-info">
-          Курс обновляется...
-        </div>
+        <!-- Кнопка и информация -->
+        <button id="swap-btn" class="btn swap-btn" disabled>Обменять</button>
+        <div id="rate-info" class="rate-info">Курс обновляется...</div>
       </div>
     </div>
   </main>
@@ -109,7 +111,7 @@
 
     // Подключение кошелька
     document.getElementById('connect-wallet').addEventListener('click', async () => {
-      if (!window.ethereum) return alert('Установите MetaMask');
+      if (!window.ethereum) return alert('MetaMask не установлен');
       try {
         const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
         currentAccount = accounts[0];
@@ -129,16 +131,65 @@
       document.getElementById('swap-btn').disabled = true;
     });
 
-    // Симуляция обмена + курс
-    document.getElementById('from-amount').addEventListener('input', e => {
-      const val = parseFloat(e.target.value) || 0;
-      document.getElementById('to-amount').value = (val * 0.985).toFixed(6);
-      document.getElementById('rate-info').textContent = 'Примерный курс: 1 ETH ≈ 0.985 (комиссия ~1.5%)';
+    // Показ/скрытие поля TON-адреса
+    const toChainSelect = document.getElementById('to-chain');
+    const tonField = document.getElementById('ton-address-field');
+
+    toChainSelect.addEventListener('change', () => {
+      tonField.style.display = toChainSelect.value === 'ton' ? 'block' : 'none';
     });
 
+    // Автоматический расчёт курса через CoinGecko
+    async function updateRate() {
+      const fromToken = document.getElementById('from-asset').value.toLowerCase();
+      const toToken = document.getElementById('to-asset').value.toLowerCase();
+      const amount = parseFloat(document.getElementById('from-amount').value) || 0;
+
+      if (amount <= 0) {
+        document.getElementById('to-amount').value = '';
+        document.getElementById('rate-info').textContent = 'Введите сумму';
+        return;
+      }
+
+      try {
+        const res = await fetch(`https://api.coingecko.com/api/v3/simple/price?ids=${fromToken},${toToken}&vs_currencies=usd`);
+        const data = await res.json();
+
+        const fromPrice = data[fromToken]?.usd || 0;
+        const toPrice = data[toToken]?.usd || 0;
+
+        if (fromPrice && toPrice) {
+          const received = (amount * fromPrice / toPrice).toFixed(6);
+          document.getElementById('to-amount').value = received;
+          document.getElementById('rate-info').textContent = 
+            `1 ${fromToken.toUpperCase()} ≈ ${(fromPrice / toPrice).toFixed(4)} ${toToken.toUpperCase()} (курс CoinGecko)`;
+        } else {
+          document.getElementById('rate-info').textContent = 'Курс недоступен';
+        }
+      } catch (e) {
+        document.getElementById('rate-info').textContent = 'Ошибка получения курса';
+      }
+    }
+
+    // События на изменение
+    ['from-amount', 'from-asset', 'to-asset'].forEach(id => {
+      document.getElementById(id).addEventListener('input', updateRate);
+      document.getElementById(id).addEventListener('change', updateRate);
+    });
+
+    // Кнопка обмена
     document.getElementById('swap-btn').addEventListener('click', () => {
       if (!currentAccount) return alert('Подключите кошелёк');
-      alert('Обмен выполнен (симуляция). Реальный бридж в разработке!');
+
+      const tonReceiver = document.getElementById('ton-address-field').style.display === 'block' 
+        ? document.getElementById('ton-receiver-address').value.trim() 
+        : '';
+
+      if (toChainSelect.value === 'ton' && !tonReceiver) {
+        return alert('Введите адрес TON-кошелька');
+      }
+
+      alert(`Обмен выполнен (симуляция)!\n\nОтдаёте: ${document.getElementById('from-amount').value} ${document.getElementById('from-asset').value}\nПолучаете: ${document.getElementById('to-amount').value} ${document.getElementById('to-asset').value}\n${tonReceiver ? 'TON-адрес: ' + tonReceiver : ''}`);
     });
   </script>
 </body>
