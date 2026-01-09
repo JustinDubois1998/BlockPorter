@@ -3,24 +3,245 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>BlockPorter - О проекте</title>
+  <title>BlockPorter — Профиль</title>
   <link rel="stylesheet" href="style.css"/>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
   <link rel="icon" href="logo.svg" type="image/svg+xml"/>
+  <script src="https://cdn.jsdelivr.net/npm/qrcode.js@1.0.0/lib/qrcode.min.js"></script>
 </head>
 <body>
-  <header><!-- Тот же header --></header>
-
-  <main class="container">
-    <h1>О BlockPorter</h1>
-    <p>BlockPorter — это децентрализованная платформа для кроссчейн обмена токенов без посредников.</p>
-    
-    <div class="features-grid">
-      <div>Поддержка Ethereum, BSC, Polygon, Optimism, Arbitrum</div>
-      <div>Non-custodial — ваши ключи, ваши активы</div>
-      <div>Низкие комиссии и высокая скорость</div>
+  <header>
+    <div class="container">
+      <a href="index.html" class="logo">
+        <img src="logo.svg" alt="BlockPorter" height="40"/>
+      </a>
+      <nav>
+        <a href="index.html">Главная</a>
+        <a href="dashboard.html">Обмен</a>
+        <a href="about.html">О проекте</a>
+        <span id="auth-status">Профиль</span>
+      </nav>
     </div>
+  </header>
 
-    <p>Проект в активной разработке. Присоединяйтесь к сообществу!</p>
+  <main class="profile-page">
+    <!-- Фоновая анимация (опционально) -->
+    <div class="background-glow"></div>
+
+    <div class="profile-container">
+      <!-- Карточка профиля -->
+      <div class="profile-card glass">
+        <div class="profile-header">
+          <div class="avatar">
+            <i class="fas fa-wallet"></i>
+          </div>
+          <h1>Ваш кошелёк</h1>
+          <div class="connection-status" id="connection-status">Не подключён</div>
+        </div>
+
+        <!-- Состояние без подключения -->
+        <div id="no-wallet" class="connect-prompt">
+          <p>Подключите кошелёк, чтобы увидеть балансы и управлять активами</p>
+          <button id="connect-wallet" class="btn neon-btn">
+            <img src="https://upload.wikimedia.org/wikipedia/commons/3/36/MetaMask_Fox.svg" alt="MetaMask" class="wallet-icon"/>
+            Подключить MetaMask
+          </button>
+        </div>
+
+        <!-- Состояние после подключения -->
+        <div id="wallet-connected" class="connected-view" style="display:none;">
+          <!-- Селектор сети -->
+          <div class="network-control">
+            <label>Сеть</label>
+            <select id="chain-select" class="network-select">
+              <option value="1">Ethereum</option>
+              <option value="56">BSC</option>
+              <option value="137">Polygon</option>
+              <option value="10">Optimism</option>
+              <option value="42161">Arbitrum</option>
+            </select>
+            <span id="current-network" class="network-badge">Текущая: —</span>
+          </div>
+
+          <!-- Адрес -->
+          <div class="wallet-address-card">
+            <div class="address-label">Адрес кошелька</div>
+            <div class="address-value" id="full-address">—</div>
+            <button id="copy-address" class="btn copy-btn">
+              <i class="fas fa-copy"></i> Копировать
+            </button>
+          </div>
+
+          <!-- QR-код -->
+          <div class="qr-container">
+            <div id="qr-code" class="qr-box"></div>
+            <p class="qr-hint">Отсканируйте для быстрого пополнения</p>
+          </div>
+
+          <!-- Балансы -->
+          <div class="balances-section">
+            <h3>Балансы активов</h3>
+            <div id="balances-list" class="balances-grid">
+              <!-- Динамически заполняется -->
+              <div class="asset-item loading">Загрузка...</div>
+            </div>
+          </div>
+
+          <!-- Кнопка выхода -->
+          <button id="disconnect" class="btn logout-btn">
+            <i class="fas fa-sign-out-alt"></i> Выйти
+          </button>
+        </div>
+      </div>
+    </div>
   </main>
+
+  <script type="module">
+    // Конфигурация сетей и explorers
+    const explorers = {
+      '1': { name: 'Ethereum', baseUrl: 'https://etherscan.io/address/' },
+      '56': { name: 'BSC', baseUrl: 'https://bscscan.com/address/' },
+      '137': { name: 'Polygon', baseUrl: 'https://polygonscan.com/address/' },
+      '10': { name: 'Optimism', baseUrl: 'https://optimistic.etherscan.io/address/' },
+      '42161': { name: 'Arbitrum', baseUrl: 'https://arbiscan.io/address/' }
+    };
+
+    const proxy = 'https://corsproxy.io/?';
+
+    let currentAccount = null;
+    let currentChainId = '137';
+
+    // Проверка при загрузке
+    if (localStorage.getItem('walletConnected') === 'true') {
+      currentAccount = localStorage.getItem('walletAddress');
+      showConnected();
+      loadBalances();
+    }
+
+    async function connectWallet() {
+      if (!window.ethereum) return alert('MetaMask не установлен');
+
+      try {
+        const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+        currentAccount = accounts[0].toLowerCase();
+
+        const chainHex = await window.ethereum.request({ method: 'eth_chainId' });
+        currentChainId = parseInt(chainHex, 16).toString();
+
+        localStorage.setItem('walletAddress', currentAccount);
+        localStorage.setItem('walletConnected', 'true');
+
+        showConnected();
+        loadBalances();
+      } catch (err) {
+        alert('Ошибка подключения');
+      }
+    }
+
+    function showConnected() {
+      document.getElementById('no-wallet').style.display = 'none';
+      document.getElementById('wallet-connected').style.display = 'block';
+      document.getElementById('full-address').textContent = currentAccount;
+      document.getElementById('connection-status').textContent = 'Подключён';
+      document.getElementById('connection-status').className = 'connection-status connected';
+
+      document.getElementById('chain-select').value = currentChainId;
+      document.getElementById('current-network').textContent = `Текущая: ${explorers[currentChainId]?.name || '—'}`;
+
+      // QR-код
+      document.getElementById('qr-code').innerHTML = '';
+      new QRCode(document.getElementById('qr-code'), {
+        text: currentAccount,
+        width: 200,
+        height: 200,
+        colorDark: "#00ff9d",
+        colorLight: "#0f0f1a",
+        correctLevel: QRCode.CorrectLevel.H
+      });
+    }
+
+    async function loadBalances() {
+      const explorer = explorers[currentChainId];
+      if (!explorer) return;
+
+      const url = explorer.baseUrl + currentAccount;
+      const proxyUrl = proxy + encodeURIComponent(url);
+
+      document.getElementById('balances-list').innerHTML = '<div class="asset-item loading">Загрузка балансов...</div>';
+
+      try {
+        const res = await fetch(proxyUrl);
+        const html = await res.text();
+        const parser = new DOMParser();
+        const doc = parser.parseFromString(html, 'text/html');
+
+        const list = document.getElementById('balances-list');
+        list.innerHTML = '';
+
+        // Native токен
+        let native = doc.querySelector('#balance') || doc.querySelector('#ContentPlaceHolder1_divSummary .listamount') || doc.querySelector('.balance-value');
+        if (native) {
+          const text = native.textContent.trim().split(' ')[0];
+          const symbol = currentChainId === '56' ? 'BNB' : currentChainId === '137' ? 'MATIC' : currentChainId === '10' ? 'OP' : 'ETH';
+          list.innerHTML += `<div class="asset-item"><span>${symbol}</span><strong>${text}</strong></div>`;
+        }
+
+        // ERC-20 токены
+        const rows = doc.querySelectorAll('#tblResult tr, table tbody tr');
+        rows.forEach(r => {
+          const tds = r.querySelectorAll('td');
+          if (tds.length >= 3) {
+            const name = tds[1]?.textContent.trim().split(' ')[0];
+            const bal = tds[2]?.textContent.trim();
+            if (bal && parseFloat(bal.replace(/,/g,'')) > 0) {
+              list.innerHTML += `<div class="asset-item"><span>${name}</span><strong>${bal}</strong></div>`;
+            }
+          }
+        });
+
+        if (!list.innerHTML.trim()) {
+          list.innerHTML = '<div class="asset-item">Нет активов</div>';
+        }
+      } catch (e) {
+        list.innerHTML = '<div class="asset-item error">Не удалось загрузить балансы</div>';
+      }
+    }
+
+    // События
+    document.getElementById('connect-wallet').onclick = connectWallet;
+
+    document.getElementById('chain-select').onchange = async e => {
+      currentChainId = e.target.value;
+      document.getElementById('current-network').textContent = `Текущая: ${explorers[currentChainId]?.name || '—'}`;
+      try {
+        await window.ethereum.request({
+          method: 'wallet_switchEthereumChain',
+          params: [{ chainId: '0x' + parseInt(currentChainId).toString(16) }]
+        });
+        loadBalances();
+      } catch (err) {
+        alert('Не удалось переключить сеть');
+      }
+    };
+
+    document.getElementById('copy-address').onclick = () => {
+      navigator.clipboard.writeText(currentAccount);
+      alert('Адрес скопирован!');
+    };
+
+    document.getElementById('disconnect').onclick = () => {
+      localStorage.clear();
+      location.reload();
+    };
+
+    if (window.ethereum) {
+      window.ethereum.on('chainChanged', chain => {
+        currentChainId = parseInt(chain, 16).toString();
+        document.getElementById('chain-select').value = currentChainId;
+        document.getElementById('current-network').textContent = `Текущая: ${explorers[currentChainId]?.name || '—'}`;
+        loadBalances();
+      });
+    }
+  </script>
 </body>
 </html>
