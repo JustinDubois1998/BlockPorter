@@ -3,90 +3,137 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>BlockPorter - Обмен</title>
+  <title>BlockPorter — Обмен</title>
   <link rel="stylesheet" href="style.css"/>
   <link rel="icon" href="logo.svg" type="image/svg+xml"/>
 </head>
 <body>
-  <header><!-- Тот же header с updateAuthStatus --></header>
+  <header>
+    <div class="container">
+      <a href="index.html" class="logo">
+        <img src="logo.svg" alt="BlockPorter" height="40"/>
+      </a>
+      <nav>
+        <a href="index.html">Главная</a>
+        <a href="dashboard.html">Обмен</a>
+        <a href="about.html">О проекте</a>
+        <a href="profile.html" id="profile-link">Профиль</a>
+      </nav>
+    </div>
+  </header>
 
-  <main class="container">
-    <section class="swap-card">
+  <main class="swap-page">
+    <div class="swap-container glass">
       <h1>Кроссчейн обмен</h1>
 
-      <div class="wallet-status">
-        <button id="connect-btn" class="btn">Подключить кошелёк</button>
-        <span id="wallet-short" style="display:none;"></span>
+      <!-- Подключение кошелька -->
+      <div class="wallet-connect">
+        <button id="connect-wallet" class="btn neon-btn">
+          <img src="https://upload.wikimedia.org/wikipedia/commons/3/36/MetaMask_Fox.svg" alt="MetaMask" class="wallet-icon"/>
+          Подключить MetaMask
+        </button>
+        <div id="wallet-info" class="wallet-info" style="display:none;">
+          <span id="wallet-address"></span>
+          <button id="disconnect" class="btn small logout-btn">Отключить</button>
+        </div>
       </div>
 
+      <!-- Форма свопа -->
       <div class="swap-form">
-        <div class="input-group">
+        <div class="swap-input-box">
           <label>Отдаёте</label>
-          <select id="from-chain">
-            <option value="ethereum">Ethereum</option>
-            <option value="bsc">BSC</option>
-            <option value="polygon">Polygon</option>
-            <option value="optimism">Optimism</option>
-          </select>
-          <input type="number" id="from-value" placeholder="0.00" step="any"/>
-          <select id="from-asset">
-            <option>ETH</option>
-            <option>USDC</option>
-            <option>USDT</option>
-          </select>
+          <div class="input-row">
+            <input type="number" id="from-amount" placeholder="0.0" step="any"/>
+            <select id="from-asset">
+              <option>ETH</option>
+              <option>USDC</option>
+              <option>USDT</option>
+              <option>MATIC</option>
+            </select>
+          </div>
+          <div class="chain-select">
+            <select id="from-chain">
+              <option>Ethereum</option>
+              <option>BSC</option>
+              <option>Polygon</option>
+              <option>Optimism</option>
+            </select>
+          </div>
         </div>
 
-        <div class="swap-arrow">↔</div>
-
-        <div class="input-group">
-          <label>Получаете</label>
-          <select id="to-chain">
-            <option value="bsc">BSC</option>
-            <option value="ethereum">Ethereum</option>
-            <option value="polygon">Polygon</option>
-            <option value="optimism">Optimism</option>
-          </select>
-          <input type="number" id="to-value" placeholder="0.00" disabled/>
-          <select id="to-asset">
-            <option>USDC</option>
-            <option>USDT</option>
-            <option>ETH</option>
-          </select>
+        <div class="swap-arrow">
+          <i class="fas fa-exchange-alt"></i>
         </div>
 
-        <button id="swap-btn" class="btn primary" disabled>Обменять</button>
-        <p id="rate-info" class="rate">Курс обновляется...</p>
+        <div class="swap-input-box">
+          <label>Получаете (примерно)</label>
+          <div class="input-row">
+            <input type="number" id="to-amount" placeholder="0.0" disabled/>
+            <select id="to-asset">
+              <option>USDC</option>
+              <option>USDT</option>
+              <option>ETH</option>
+              <option>BNB</option>
+            </select>
+          </div>
+          <div class="chain-select">
+            <select id="to-chain">
+              <option>BSC</option>
+              <option>Ethereum</option>
+              <option>Polygon</option>
+              <option>Optimism</option>
+            </select>
+          </div>
+        </div>
+
+        <button id="swap-btn" class="btn primary-btn" disabled>Обменять</button>
+
+        <div id="rate-info" class="rate-display">Курс обновляется...</div>
       </div>
-    </section>
+    </div>
   </main>
 
   <script>
-    // Подключение кошелька + защита
-    let account = null;
+    let currentAccount = null;
 
-    document.getElementById('connect-btn').onclick = async () => {
-      if (!window.ethereum) return alert('MetaMask не найден');
+    const connectBtn = document.getElementById('connect-wallet');
+    const walletInfo = document.getElementById('wallet-info');
+    const addressEl = document.getElementById('wallet-address');
+    const disconnectBtn = document.getElementById('disconnect');
+    const swapBtn = document.getElementById('swap-btn');
+
+    connectBtn.addEventListener('click', async () => {
+      if (!window.ethereum) return alert('Установите MetaMask');
       try {
-        const acc = await window.ethereum.request({method: 'eth_requestAccounts'});
-        account = acc[0];
-        document.getElementById('wallet-short').textContent = account.slice(0,6)+'...'+account.slice(-4);
-        document.getElementById('wallet-short').style.display = 'inline';
-        document.getElementById('connect-btn').style.display = 'none';
-        document.getElementById('swap-btn').disabled = false;
-      } catch(e){ alert('Ошибка'); }
-    };
+        const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+        currentAccount = accounts[0];
+        addressEl.textContent = currentAccount.slice(0,6) + '...' + currentAccount.slice(-4);
+        walletInfo.style.display = 'flex';
+        connectBtn.style.display = 'none';
+        swapBtn.disabled = false;
+      } catch (err) {
+        alert('Ошибка подключения');
+      }
+    });
 
-    // Простая симуляция курса и свопа
-    document.getElementById('from-value').oninput = () => {
-      const val = parseFloat(document.getElementById('from-value').value) || 0;
-      document.getElementById('to-value').value = (val * 0.98).toFixed(4); // заглушка
-      document.getElementById('rate-info').textContent = 'Примерный курс: 1 → 0.98 (комиссия 2%)';
-    };
+    disconnectBtn.addEventListener('click', () => {
+      currentAccount = null;
+      walletInfo.style.display = 'none';
+      connectBtn.style.display = 'block';
+      swapBtn.disabled = true;
+    });
 
-    document.getElementById('swap-btn').onclick = () => {
-      if (!account) return alert('Подключите кошелёк');
+    // Симуляция расчёта (можно заменить на CoinGecko позже)
+    document.getElementById('from-amount').addEventListener('input', e => {
+      const val = parseFloat(e.target.value) || 0;
+      document.getElementById('to-amount').value = (val * 0.985).toFixed(6); // пример комиссии
+      document.getElementById('rate-info').textContent = 'Примерный курс: 1 ETH ≈ 0.985 (комиссия ~1.5%)';
+    });
+
+    swapBtn.addEventListener('click', () => {
+      if (!currentAccount) return alert('Подключите кошелёк');
       alert('Обмен выполнен (симуляция). Реальный бридж в разработке!');
-    };
+    });
   </script>
 </body>
 </html>
