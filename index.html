@@ -1,91 +1,69 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BlockPorter - Кроссчейн обмен</title>
-    <link rel="stylesheet" href="style.css">
-    <link rel="manifest" href="/BlockPorter/manifest.json">
-    <!-- Firebase SDK (последняя версия 9+ modular) -->
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js";
-        import { getAuth } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-auth.js";
-
-        const firebaseConfig = {
-            apiKey: "AIzaSyBHWbr9rlbKUiTY6qEYpLEqfy07W1b3Yqs",
-            authDomain: "blockporter-1.firebaseapp.com",
-            projectId: "blockporter-1",
-            storageBucket: "blockporter-1.firebasestorage.app",
-            messagingSenderId: "873745031112",
-            appId: "1:873745031112:web:0dd56950729a4d4f532afd"
-        };
-
-        const app = initializeApp(firebaseConfig);
-        const auth = getAuth(app);
-        
-        // Проверка текущего пользователя
-auth.onAuthStateChanged(user => {
-    const userInfo = document.getElementById('user-info');
-    if (user) {
-        userInfo.innerHTML = `
-            Привет, ${user.email.split('@')[0]}! 
-            <a href="dashboard.html">Dashboard</a> 
-            <button id="logout-btn" style="background:none;border:none;color:var(--accent);cursor:pointer;">Выйти</button>
-        `;
-        // Добавляем обработчик выхода
-        document.getElementById('logout-btn')?.addEventListener('click', () => {
-            auth.signOut().then(() => {
-                alert('Вы вышли из аккаунта');
-                window.location.href = 'index.html';
-            });
-        });
-    } else {
-        userInfo.innerHTML = '<a href="auth.html">Войти / Регистрация</a>';
-    }
-});
-    </script>
-    <link rel="icon" href="favicon.png" type="image/png">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>BlockPorter — Кроссчейн обмен</title>
+  <link rel="stylesheet" href="style.css"/>
+  <link rel="icon" href="logo.svg" type="image/svg+xml"/>
+  <link rel="manifest" href="manifest.json"/>
 </head>
 <body>
-<header>
+  <header>
     <div class="container">
-        <h1><a href="index.html" style="color: var(--accent); text-decoration:none;">BlockPorter</a></h1>
-        <nav>
-            <a href="index.html">Главная</a>
-            <a href="dashboard.html">Обмен</a>
-            <a href="about.html">О проекте</a>
-            <span id="user-info"><a href="auth.html">Войти / Регистрация</a></span>
-        </nav>
+      <a href="index.html" class="logo">
+        <img src="logo.svg" alt="BlockPorter" height="40"/>
+      </a>
+      <nav>
+        <a href="index.html">Главная</a>
+        <a href="dashboard.html">Обмен</a>
+        <a href="about.html">О проекте</a>
+        <span id="auth-status"><a href="auth.html">Войти</a></span>
+      </nav>
     </div>
-</header>
+  </header>
 
-    <main class="container">
-        <section class="hero">
-            <h2>Быстрый и безопасный кроссчейн обмен криптовалюты</h2>
-            <p>Обменивай токены между блокчейнами без посредников.</p>
-            <a href="dashboard.html" class="btn">Начать обмен</a>
-        </section>
+  <main class="hero">
+    <div class="container">
+      <h1>BlockPorter</h1>
+      <p class="subtitle">Быстрый, безопасный и децентрализованный кроссчейн обмен</p>
+      <a href="dashboard.html" class="btn large">Начать обмен</a>
+    </div>
+  </main>
 
-        <section class="features">
-            <div class="feature">
-                <h3>Молниеносно</h3>
-                <p>Обмен за секунды</p>
-            </div>
-            <div class="feature">
-                <h3>Безопасно</h3>
-                <p>Децентрализованно</p>
-            </div>
-            <div class="feature">
-                <h3>Низкие комиссии</h3>
-                <p>Минимальные затраты</p>
-            </div>
-        </section>
-    </main>
+  <section class="features container">
+    <div class="feature">
+      <i class="fas fa-bolt"></i>
+      <h3>Мгновенно</h3>
+      <p>Обмен за секунды между Ethereum, BSC, Polygon и другими</p>
+    </div>
+    <div class="feature">
+      <i class="fas fa-shield-alt"></i>
+      <h3>Безопасно</h3>
+      <p>Non-custodial — вы контролируете свои ключи</p>
+    </div>
+    <div class="feature">
+      <i class="fas fa-hand-holding-usd"></i>
+      <h3>Низкие комиссии</h3>
+      <p>Минимальные затраты благодаря оптимизированным бриджам</p>
+    </div>
+  </section>
 
-    <footer>
-        <div class="container">
-            <p>&copy; 2026 BlockPorter</p>
-        </div>
-    </footer>
+  <script>
+    function updateAuthStatus() {
+      const status = document.getElementById('auth-status');
+      const connected = localStorage.getItem('walletConnected') === 'true';
+      const addr = localStorage.getItem('walletAddress');
+
+      if (connected && addr) {
+        const short = addr.slice(0,6) + '...' + addr.slice(-4);
+        status.innerHTML = `<a href="profile.html">${short}</a> <button onclick="localStorage.clear(); location.reload();">Выйти</button>`;
+      } else {
+        status.innerHTML = '<a href="auth.html">Войти</a>';
+      }
+    }
+
+    updateAuthStatus();
+  </script>
 </body>
 </html>
