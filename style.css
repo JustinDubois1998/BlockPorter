@@ -1696,56 +1696,23 @@ small {
   text-align: center;
 }
 
-.network-selector label {
-  display: block;
+.network-selector {
   margin-bottom: 12px;
-  color: #aaa;
-  font-size: 1.1rem;
 }
 
-.custom-select {
-  position: relative;
-  max-width: 400px;
-  margin: 0 auto;
-}
-
-.custom-select select {
+.network-select {
   width: 100%;
-  padding: 16px 50px 16px 20px;
+  padding: 14px;
   background: rgba(0,0,0,0.4);
-  border: 1px solid rgba(0,255,157,0.3);
-  border-radius: 16px;
+  border: 1px solid rgba(0,255,157,0.2);
+  border-radius: 14px;
   color: white;
-  font-size: 1.1rem;
+  font-size: 1rem;
   appearance: none;
-  cursor: pointer;
-}
-
-.select-arrow {
-  position: absolute;
-  right: 20px;
-  top: 50%;
-  transform: translateY(-50%);
-  width: 0;
-  height: 0;
-  border-left: 8px solid transparent;
-  border-right: 8px solid transparent;
-  border-top: 10px solid #00ff9d;
-  pointer-events: none;
-}
-
-/* Маленький значок MetaMask */
-.metamask-icon.small {
-  width: 24px;
-  height: 24px;
-}
-
-/* Подключено + Выход */
-.connected-view {
-  display: flex;
-  gap: 15px;
-  justify-content: center;
-  align-items: center;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%2300ff9d' d='M6 9L1 4h10z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 14px center;
+  background-size: 12px;
 }
 
 .connected-btn {
@@ -1754,24 +1721,23 @@ small {
   padding: 14px 40px;
   border-radius: 50px;
   font-weight: bold;
-  display: flex;
-  align-items: center;
-  gap: 12px;
+  box-shadow: 0 0 30px rgba(0,255,157,0.4);
+  transition: all 0.3s;
 }
 
-.disconnect-btn {
+.logout-btn {
   background: rgba(255,80,80,0.2);
-  border: 1px solid #ff5050;
   color: #ff5050;
+  border: 1px solid rgba(255,80,80,0.4);
   padding: 12px 24px;
   border-radius: 50px;
+  margin-left: 20px;
 }
 
-/* Стрелка вниз */
-.swap-arrow {
-  font-size: 3rem;
-  color: #00ff9d;
-  text-align: center;
-  margin: 20px 0;
-  opacity: 0.8;
+.wallet-connected {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 20px;
+  margin-bottom: 50px;
 }
