@@ -1706,22 +1706,32 @@ small {
   }
 }
 
+/* Улучшенные селекторы сетей */
+.network-row {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 60px;
+  margin: 0 0 50px;
+  flex-wrap: wrap;
+}
+
 .network-group {
-  width: 100%;
-  max-width: 380px;
+  flex: 1;
+  min-width: 260px;
   position: relative;
 }
 
 .network-group label {
   position: absolute;
   top: -10px;
-  left: 20px;
+  left: 16px;
   background: var(--bg);
-  padding: 0 10px;
+  padding: 0 8px;
   color: #aaa;
-  font-size: 0.9rem;
+  font-size: 0.85rem;
   pointer-events: none;
-  z-index: 1;
+  z-index: 2;
 }
 
 .custom-select {
@@ -1730,28 +1740,27 @@ small {
 
 .chain-selector {
   width: 100%;
-  padding: 18px 50px 18px 20px;
-  background: rgba(0,0,0,0.5);
-  border: 1px solid rgba(0,255,157,0.2);
+  padding: 18px 48px 18px 20px;
+  background: rgba(0,0,0,0.45);
+  border: 1px solid rgba(0,255,157,0.18);
   border-radius: 16px;
   color: white;
   font-size: 1.1rem;
   appearance: none;
   transition: all 0.4s ease;
   cursor: pointer;
-  box-shadow: 0 4px 15px rgba(0,0,0,0.3);
 }
 
 .chain-selector:hover {
   border-color: #00ff9d;
-  box-shadow: 0 0 25px rgba(0,255,157,0.35);
+  box-shadow: 0 0 25px rgba(0,255,157,0.3);
   transform: translateY(-3px);
 }
 
 .chain-selector:focus {
   outline: none;
   border-color: #00ff9d;
-  box-shadow: 0 0 0 4px rgba(0,255,157,0.25);
+  box-shadow: 0 0 35px rgba(0,255,157,0.5);
 }
 
 .select-arrow {
@@ -1760,7 +1769,7 @@ small {
   top: 50%;
   transform: translateY(-50%);
   color: #00ff9d;
-  font-size: 1.1rem;
+  font-size: 1.2rem;
   pointer-events: none;
   transition: transform 0.4s ease;
 }
@@ -1769,71 +1778,17 @@ small {
   transform: translateY(-50%) rotate(180deg);
 }
 
-/* Стрелка вниз между блоками */
+/* Стрелочка вниз между полями */
 .swap-arrow-down {
-  font-size: 4rem;
+  font-size: 4.5rem;
   color: #00ff9d;
-  text-shadow: 0 0 30px rgba(0,255,157,0.5);
-  animation: pulse-arrow 2.5s infinite ease-in-out;
+  text-shadow: 0 0 30px rgba(0,255,157,0.6);
+  animation: pulseArrow 2.5s infinite ease-in-out;
   margin: 30px 0;
   text-align: center;
 }
 
-@keyframes pulse-arrow {
+@keyframes pulseArrow {
   0%, 100% { transform: scale(1); opacity: 0.8; }
   50% { transform: scale(1.15); opacity: 1; }
-}
-
-/* Адаптивность полей */
-.swap-form {
-  display: flex;
-  flex-direction: column;
-  gap: 40px;
-}
-
-.swap-box {
-  background: rgba(0,0,0,0.45);
-  border-radius: 20px;
-  padding: 25px;
-  border: 1px solid rgba(0,255,157,0.15);
-  transition: all 0.3s;
-}
-
-@media (min-width: 768px) {
-  .swap-form {
-    flex-direction: row;
-    align-items: flex-end;
-    gap: 30px;
-  }
-
-  .swap-box {
-    flex: 1;
-  }
-}
-
-.input-row {
-  display: flex;
-  gap: 12px;
-  align-items: center;
-}
-
-.input-row input {
-  flex: 1;
-  padding: 18px;
-  background: #1a1a2e;
-  border: none;
-  border-radius: 14px;
-  color: white;
-  font-size: 1.6rem;
-  text-align: right;
-}
-
-.token-select {
-  padding: 18px;
-  background: #1a1a2e;
-  border: none;
-  border-radius: 14px;
-  color: white;
-  font-size: 1rem;
-  min-width: 110px;
 }
