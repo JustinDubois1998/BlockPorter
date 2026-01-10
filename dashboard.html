@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>BlockPorter — Обмен</title>
   <link rel="stylesheet" href="style.css"/>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
   <link rel="icon" href="logo.svg" type="image/svg+xml"/>
 </head>
 <body class="swap-body">
@@ -33,12 +34,12 @@
         </button>
 
         <div id="wallet-info" class="wallet-info" style="display:none;">
-          <span class="wallet-status">Подключено</span>
+          <span class="wallet-status neon-pulse">Подключено</span>
           <button id="disconnect" class="btn disconnect-btn">Выход</button>
         </div>
       </div>
 
-      <!-- Два селектора сети -->
+      <!-- Селекторы сетей (два красивых) -->
       <div class="network-row">
         <div class="network-group">
           <label>Сеть отдаёте</label>
@@ -51,13 +52,12 @@
               <option value="arbitrum">Arbitrum</option>
               <option value="ton">TON</option>
             </select>
+            <span class="select-arrow"></span>
           </div>
         </div>
 
-        <div class="arrow-container">
-          <div class="arrow-down pulse">
-            <i class="fas fa-arrow-down"></i>
-          </div>
+        <div class="swap-arrow-down">
+          <i class="fas fa-arrow-down pulse-arrow"></i>
         </div>
 
         <div class="network-group">
@@ -71,27 +71,24 @@
               <option value="arbitrum">Arbitrum</option>
               <option value="ton">TON</option>
             </select>
+            <span class="select-arrow"></span>
           </div>
         </div>
       </div>
 
-      <!-- Форма обмена -->
+      <!-- Форма ввода -->
       <div class="swap-form">
         <div class="swap-box from-box">
           <div class="swap-label">Отдаёте</div>
           <div class="input-row">
             <input type="number" id="from-amount" placeholder="0.0" step="any" min="0"/>
-            <div class="custom-select-wrapper">
-              <select id="from-token" class="custom-select token-select">
-                <option>ETH</option>
-                <option>USDC</option>
-                <option>USDT</option>
-                <option>MATIC</option>
-                <option>BNB</option>
-                <option>TON</option>
-                <option>XRP</option>
-              </select>
-            </div>
+            <select id="from-token" class="token-select">
+              <option>ETH</option>
+              <option>USDC</option>
+              <option>USDT</option>
+              <option>TON</option>
+              <option>XRP</option>
+            </select>
           </div>
         </div>
 
@@ -99,16 +96,13 @@
           <div class="swap-label">Получаете (примерно)</div>
           <div class="input-row">
             <input type="number" id="to-amount" placeholder="0.0" disabled/>
-            <div class="custom-select-wrapper">
-              <select id="to-token" class="custom-select token-select">
-                <option>USDC</option>
-                <option>USDT</option>
-                <option>ETH</option>
-                <option>BNB</option>
-                <option>TON</option>
-                <option>XRP</option>
-              </select>
-            </div>
+            <select id="to-token" class="token-select">
+              <option>USDC</option>
+              <option>USDT</option>
+              <option>ETH</option>
+              <option>TON</option>
+              <option>XRP</option>
+            </select>
           </div>
         </div>
 
@@ -122,15 +116,50 @@
   </main>
 
   <script>
-    // ... (твой текущий скрипт подключения кошелька и симуляции остаётся без изменений)
-    // Просто добавь этот маленький кусок для улучшения поведения селекторов (опционально)
-    document.querySelectorAll('.custom-select').forEach(select => {
-      select.addEventListener('focus', () => {
-        select.parentElement.classList.add('focused');
-      });
-      select.addEventListener('blur', () => {
-        select.parentElement.classList.remove('focused');
-      });
+    let currentAccount = null;
+
+    // Подключение / отключение
+    document.getElementById('connect-wallet').addEventListener('click', async () => {
+      if (!window.ethereum) return alert('MetaMask не установлен');
+
+      try {
+        const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+        currentAccount = accounts[0];
+        document.getElementById('wallet-info').style.display = 'flex';
+        document.getElementById('connect-wallet').style.display = 'none';
+        document.getElementById('swap-button').disabled = false;
+      } catch (err) {
+        alert('Ошибка: ' + err.message);
+      }
+    });
+
+    document.getElementById('disconnect').addEventListener('click', () => {
+      currentAccount = null;
+      localStorage.clear();
+      document.getElementById('wallet-info').style.display = 'none';
+      document.getElementById('connect-wallet').style.display = 'block';
+      document.getElementById('swap-button').disabled = true;
+    });
+
+    // Проверка при загрузке
+    if (localStorage.getItem('walletConnected') === 'true') {
+      currentAccount = localStorage.getItem('walletAddress');
+      document.getElementById('wallet-info').style.display = 'flex';
+      document.getElementById('connect-wallet').style.display = 'none';
+      document.getElementById('swap-button').disabled = false;
+    }
+
+    // Симуляция курса
+    document.getElementById('from-amount').addEventListener('input', e => {
+      const val = parseFloat(e.target.value) || 0;
+      document.getElementById('to-amount').value = (val * 0.98).toFixed(6);
+      document.getElementById('rate-info').textContent = 'Примерный курс: 1 → 0.98 (комиссия ~2%)';
+    });
+
+    // Обмен (симуляция)
+    document.getElementById('swap-button').addEventListener('click', () => {
+      if (!currentAccount) return alert('Сначала подключите кошелёк');
+      alert('Обмен выполнен (симуляция). Реальный кроссчейн в разработке!');
     });
   </script>
 </body>
