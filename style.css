@@ -1690,15 +1690,40 @@ small {
   text-align: center;
 }
 
-/* Красивые селекторы сетей и токенов */
+/* Красивые селекторы сетей */
+.network-row {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 60px;
+  margin: 40px 0;
+  flex-wrap: wrap;
+}
+
+.network-group {
+  flex: 1;
+  min-width: 240px;
+  position: relative;
+}
+
+.network-group label {
+  position: absolute;
+  top: -10px;
+  left: 16px;
+  background: var(--bg);
+  padding: 0 10px;
+  color: #aaa;
+  font-size: 0.9rem;
+  z-index: 1;
+}
+
 .custom-select-wrapper {
   position: relative;
-  width: 100%;
 }
 
 .custom-select {
   width: 100%;
-  padding: 16px 48px 16px 20px;
+  padding: 18px 48px 18px 20px;
   background: rgba(0,0,0,0.45);
   border: 1px solid rgba(0,255,157,0.18);
   border-radius: 16px;
@@ -1706,78 +1731,61 @@ small {
   font-size: 1.1rem;
   appearance: none;
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: all 0.3s;
 }
 
 .custom-select:hover,
 .custom-select:focus {
   border-color: #00ff9d;
   box-shadow: 0 0 20px rgba(0,255,157,0.25);
-  background: rgba(0,255,157,0.08);
-}
-
-.custom-select:focus {
   outline: none;
 }
 
-/* Кастомная стрелочка вниз для селектора */
-.custom-select-wrapper::after {
-  content: '▼';
+.custom-select option {
+  background: #0f0f1a;
+  color: white;
+}
+
+.select-arrow {
   position: absolute;
   right: 20px;
   top: 50%;
   transform: translateY(-50%);
-  color: #00ff9d;
-  font-size: 0.9rem;
+  width: 0;
+  height: 0;
+  border-left: 6px solid transparent;
+  border-right: 6px solid transparent;
+  border-top: 8px solid #00ff9d;
   pointer-events: none;
-  transition: all 0.3s;
 }
 
-.custom-select-wrapper.focused::after {
-  color: #00ff9d;
-  transform: translateY(-50%) rotate(180deg);
-}
-
-/* Стрелочка между полями (вниз) */
-.arrow-container {
-  display: flex;
-  justify-content: center;
-  margin: 20px 0;
-}
-
-.arrow-down {
+/* Стрелочка вниз между полями */
+.swap-arrow-down {
   font-size: 3.8rem;
   color: #00ff9d;
   text-shadow: 0 0 25px rgba(0,255,157,0.5);
-  animation: pulse 2s infinite;
+  animation: pulse-down 2s infinite;
 }
 
-@keyframes pulse {
-  0%, 100% { opacity: 0.8; transform: scale(1); }
-  50% { opacity: 1; transform: scale(1.1); }
+@keyframes pulse-down {
+  0%, 100% { transform: scale(1); opacity: 0.7; }
+  50% { transform: scale(1.15); opacity: 1; }
 }
 
-/* Улучшение полей ввода */
-.input-row {
-  display: flex;
-  gap: 12px;
-  align-items: center;
+/* Состояние подключения */
+.wallet-status.neon-pulse {
+  animation: neonPulse 2s infinite;
 }
 
-.input-row input {
-  flex: 1;
-  background: rgba(0,0,0,0.5);
-  border: 1px solid rgba(255,255,255,0.1);
-  border-radius: 16px;
-  padding: 18px 20px;
-  color: white;
-  font-size: 1.6rem;
-  text-align: right;
-  transition: all 0.3s;
+@keyframes neonPulse {
+  0%, 100% { text-shadow: 0 0 10px #00ff9d; }
+  50% { text-shadow: 0 0 30px #00ff9d, 0 0 50px #00ff9d; }
 }
 
-.input-row input:focus {
-  border-color: #00ff9d;
-  box-shadow: 0 0 20px rgba(0,255,157,0.25);
-  outline: none;
+.disconnect-btn {
+  background: rgba(255,80,80,0.2);
+  border: 1px solid #ff5050;
+  color: #ff5050;
+  padding: 10px 24px;
+  border-radius: 50px;
 }
