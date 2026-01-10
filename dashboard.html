@@ -26,42 +26,58 @@
     <div class="swap-card glass-effect">
       <h1 class="swap-title">Кроссчейн обмен</h1>
 
-      <!-- Кнопка подключения / Подключено + Выход -->
+      <!-- Блок подключения кошелька -->
       <div class="wallet-section">
-        <button id="connect-wallet" class="btn connect-btn">
-          Подключить кошелёк
-        </button>
+        <div id="connect-area">
+          <button id="connect-wallet" class="btn connect-btn">
+            Подключить MetaMask
+          </button>
+        </div>
 
-        <div id="wallet-connected" class="wallet-connected" style="display:none;">
+        <div id="connected-area" class="connected-area" style="display:none;">
           <button id="connected-btn" class="btn connected-btn">
             Подключено
           </button>
-          <button id="disconnect" class="btn logout-btn" style="display:none;">
+          <button id="disconnect" class="btn disconnect-btn">
             Выход
           </button>
         </div>
       </div>
 
-      <!-- Форма обмена с двумя селекторами сетей -->
+      <!-- Селекторы сетей (над полями) -->
+      <div class="network-selectors">
+        <div class="network-group">
+          <label>Сеть отдаёте</label>
+          <select id="from-chain" class="beautiful-select">
+            <option value="ethereum">Ethereum</option>
+            <option value="bsc">Binance Smart Chain</option>
+            <option value="polygon">Polygon</option>
+            <option value="optimism">Optimism</option>
+            <option value="arbitrum">Arbitrum</option>
+          </select>
+        </div>
+
+        <div class="network-arrow">→</div>
+
+        <div class="network-group">
+          <label>Сеть получаете</label>
+          <select id="to-chain" class="beautiful-select">
+            <option value="bsc">Binance Smart Chain</option>
+            <option value="ethereum">Ethereum</option>
+            <option value="polygon">Polygon</option>
+            <option value="optimism">Optimism</option>
+            <option value="arbitrum">Arbitrum</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Форма обмена -->
       <div class="swap-form">
-        <!-- Отдаёте -->
         <div class="swap-box from-box">
           <div class="swap-label">Отдаёте</div>
-
-          <!-- Селектор сети Отдаёте -->
-          <div class="network-selector">
-            <select id="from-chain" class="network-select">
-              <option value="ethereum">Ethereum</option>
-              <option value="bsc">Binance Smart Chain</option>
-              <option value="polygon">Polygon</option>
-              <option value="optimism">Optimism</option>
-              <option value="arbitrum">Arbitrum</option>
-            </select>
-          </div>
-
-          <div class="input-row">
+          <div class="swap-input">
             <input type="number" id="from-amount" placeholder="0.0" step="any" min="0"/>
-            <select id="from-token">
+            <select id="from-token" class="token-select">
               <option>ETH</option>
               <option>USDC</option>
               <option>USDT</option>
@@ -69,42 +85,27 @@
           </div>
         </div>
 
-        <!-- Стрелка вниз -->
-        <div class="swap-arrow">
+        <div class="swap-arrow-down">
           <i class="fas fa-arrow-down"></i>
         </div>
 
-        <!-- Получаете -->
         <div class="swap-box to-box">
-          <div class="swap-label">Получаете</div>
-
-          <!-- Селектор сети Получаете -->
-          <div class="network-selector">
-            <select id="to-chain" class="network-select">
-              <option value="bsc">Binance Smart Chain</option>
-              <option value="ethereum">Ethereum</option>
-              <option value="polygon">Polygon</option>
-              <option value="optimism">Optimism</option>
-              <option value="arbitrum">Arbitrum</option>
-            </select>
-          </div>
-
-          <div class="input-row">
+          <div class="swap-label">Получаете (примерно)</div>
+          <div class="swap-input">
             <input type="number" id="to-amount" placeholder="0.0" disabled/>
-            <select id="to-token">
+            <select id="to-token" class="token-select">
               <option>USDC</option>
               <option>USDT</option>
               <option>ETH</option>
-              <option>BNB</option>
             </select>
           </div>
         </div>
 
-        <button id="swap-button" class="btn primary-btn" disabled>
+        <button id="swap-button" class="btn swap-button" disabled>
           Обменять
         </button>
 
-        <div id="rate-info" class="rate-display">Курс обновляется...</div>
+        <div id="rate-display" class="rate-info">Курс обновляется...</div>
       </div>
     </div>
   </main>
@@ -112,62 +113,54 @@
   <script>
     let currentAccount = null;
 
-    const connectBtn = document.getElementById('connect-wallet');
-    const connectedSection = document.getElementById('wallet-connected');
+    const connectArea = document.getElementById('connect-area');
+    const connectedArea = document.getElementById('connected-area');
     const connectedBtn = document.getElementById('connected-btn');
     const disconnectBtn = document.getElementById('disconnect');
     const swapBtn = document.getElementById('swap-button');
 
-    // Проверка при загрузке
-    if (localStorage.getItem('walletConnected') === 'true') {
-      currentAccount = localStorage.getItem('walletAddress');
-      connectBtn.style.display = 'none';
-      connectedSection.style.display = 'flex';
-      connectedBtn.textContent = 'Подключено';
-      swapBtn.disabled = false;
-    }
-
-    // Подключение кошелька
-    connectBtn.addEventListener('click', async () => {
+    // Подключение
+    document.getElementById('connect-wallet').addEventListener('click', async () => {
       if (!window.ethereum) return alert('MetaMask не установлен');
 
       try {
         const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
         currentAccount = accounts[0];
-        localStorage.setItem('walletAddress', currentAccount);
-        localStorage.setItem('walletConnected', 'true');
-
-        connectBtn.style.display = 'none';
-        connectedSection.style.display = 'flex';
-        connectedBtn.textContent = 'Подключено';
+        connectArea.style.display = 'none';
+        connectedArea.style.display = 'flex';
         swapBtn.disabled = false;
       } catch (err) {
-        alert('Ошибка: ' + err.message);
+        alert('Ошибка подключения');
       }
     });
 
-    // Нажатие на "Подключено" → показ "Выход"
+    // Выход при нажатии на "Подключено"
     connectedBtn.addEventListener('click', () => {
-      disconnectBtn.style.display = disconnectBtn.style.display === 'inline-block' ? 'none' : 'inline-block';
+      // Можно просто показать/скрыть кнопку выхода
+      disconnectBtn.style.display = disconnectBtn.style.display === 'none' ? 'inline-block' : 'none';
     });
 
-    // Выход
     disconnectBtn.addEventListener('click', () => {
+      currentAccount = null;
       localStorage.clear();
+      connectArea.style.display = 'block';
+      connectedArea.style.display = 'none';
+      disconnectBtn.style.display = 'none';
+      swapBtn.disabled = true;
       location.reload();
     });
 
-    // Симуляция курса (можно заменить на реальный API позже)
+    // Симуляция расчёта
     document.getElementById('from-amount').addEventListener('input', e => {
       const val = parseFloat(e.target.value) || 0;
       document.getElementById('to-amount').value = (val * 0.98).toFixed(6);
-      document.getElementById('rate-info').textContent = 'Примерный курс: 1 → 0.98 (комиссия ~2%)';
+      document.getElementById('rate-display').textContent = 'Примерный курс: 1 → 0.98 (комиссия ~2%)';
     });
 
-    // Обмен
+    // Кнопка обмена
     swapBtn.addEventListener('click', () => {
       if (!currentAccount) return alert('Подключите кошелёк');
-      alert('Обмен выполнен (симуляция). Реальный бридж в разработке!');
+      alert('Обмен выполнен (симуляция)! Реальный бридж в разработке.');
     });
   </script>
 </body>
