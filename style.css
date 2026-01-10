@@ -1690,34 +1690,86 @@ small {
   text-align: center;
 }
 
-/* Красивый селектор сетей */
-.network-selector {
+/* Красивые селекторы сетей */
+.network-selectors {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 40px;
   margin-bottom: 40px;
-  text-align: center;
+  flex-wrap: wrap;
 }
 
-.network-selector {
-  margin-bottom: 14px;
+.network-group {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-width: 180px;
 }
 
-.network-select {
-  width: 100%;
-  padding: 14px 40px 14px 16px;
-  background: rgba(0,0,0,0.45);
-  border: 1px solid rgba(0,255,157,0.18);
-  border-radius: 14px;
+.network-group label {
+  color: #aaa;
+  margin-bottom: 8px;
+  font-size: 0.95rem;
+}
+
+.beautiful-select {
+  background: rgba(0,0,0,0.5);
+  border: 1px solid rgba(0,255,157,0.25);
+  border-radius: 16px;
+  padding: 14px 20px;
   color: white;
-  font-size: 1rem;
+  font-size: 1.1rem;
+  width: 100%;
   appearance: none;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 14 14'%3E%3Cpath fill='%2300ff9d' d='M7 11L2 6h10z'/%3E%3C/svg%3E");
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='%2300ff9d' viewBox='0 0 16 16'%3E%3Cpath d='M7.247 11.14 2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z'/%3E%3C/svg%3E");
   background-repeat: no-repeat;
   background-position: right 16px center;
-  background-size: 14px;
+  background-size: 12px;
   cursor: pointer;
   transition: all 0.3s;
 }
 
-.network-select:focus {
+.beautiful-select:hover,
+.beautiful-select:focus {
   border-color: #00ff9d;
-  box-shadow: 0 0 12px rgba(0,255,157,0.3);
+  box-shadow: 0 0 20px rgba(0,255,157,0.2);
+}
+
+.swap-arrow-down {
+  font-size: 3.5rem;
+  color: #00ff9d;
+  text-align: center;
+  margin: 20px 0;
+  opacity: 0.9;
+}
+
+/* Кнопка "Подключено" + "Выход" */
+.connected-area {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  justify-content: center;
+  margin-bottom: 40px;
+}
+
+.connected-btn {
+  background: linear-gradient(90deg, #00ff9d, #00c4ff);
+  color: #000;
+  font-weight: bold;
+  padding: 16px 48px;
+  border-radius: 60px;
+  font-size: 1.2rem;
+  box-shadow: 0 0 40px rgba(0,255,157,0.4);
+  border: none;
+  cursor: pointer;
+}
+
+.disconnect-btn {
+  background: rgba(255,80,80,0.2);
+  color: #ff5050;
+  border: 1px solid rgba(255,80,80,0.4);
+  padding: 14px 28px;
+  border-radius: 50px;
+  font-size: 1rem;
 }
