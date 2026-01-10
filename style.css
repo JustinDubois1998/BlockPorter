@@ -1916,8 +1916,8 @@ small {
   display: flex;
   justify-content: center;
   align-items: center;
-  gap: 20px;
-  margin: 0 0 50px;
+  gap: 10px; /* Уменьшен gap */
+  margin: 0 0 30px; /* Уменьшен margin-bottom */
   flex-wrap: wrap;
 }
 
@@ -1944,12 +1944,12 @@ small {
 
 .chain-selector {
   width: 100%;
-  padding: 18px 48px 18px 20px;
+  padding: 14px 40px 14px 16px; /* Уменьшено padding */
   background: rgba(0,0,0,0.45);
   border: 1px solid rgba(0,255,157,0.18);
-  border-radius: 16px;
+  border-radius: 12px; /* Уменьшен radius для компактности */
   color: white;
-  font-size: 1.1rem;
+  font-size: 1rem; /* Уменьшен font-size */
   appearance: none;
   transition: all 0.3s ease;
   cursor: pointer;
@@ -1958,17 +1958,17 @@ small {
 .chain-selector:hover,
 .chain-selector:focus {
   border-color: #00ff9d;
-  box-shadow: 0 0 20px rgba(0,255,157,0.25);
-  transform: translateY(-2px);
+  box-shadow: 0 0 15px rgba(0,255,157,0.25); /* Уменьшено shadow */
+  transform: translateY(-1px); /* Уменьшено смещение */
 }
 
 .select-arrow {
   position: absolute;
-  right: 20px;
+  right: 16px; /* Уменьшено right */
   top: 50%;
   transform: translateY(-50%);
   color: #00ff9d;
-  font-size: 1rem;
+  font-size: 0.9rem; /* Уменьшен размер */
   pointer-events: none;
   transition: transform 0.3s;
 }
@@ -1979,27 +1979,27 @@ small {
 
 /* Стрелка вправо между сетями */
 .swap-arrow-right {
-  font-size: 2.5rem;
+  font-size: 2rem; /* Уменьшен размер */
   color: #00ff9d;
-  text-shadow: 0 0 25px rgba(0,255,157,0.5);
+  text-shadow: 0 0 20px rgba(0,255,157,0.5); /* Уменьшено shadow */
   animation: pulse 2s infinite;
-  margin: 0 10px;
+  margin: 0 5px; /* Уменьшен margin */
 }
 
 /* Стрелка вниз между полями ввода */
 .swap-arrow-down {
-  font-size: 2.5rem;
+  font-size: 2rem; /* Уменьшен размер */
   color: #00ff9d;
-  text-shadow: 0 0 25px rgba(0,255,157,0.5);
+  text-shadow: 0 0 20px rgba(0,255,157,0.5);
   animation: pulse 2s infinite;
-  margin: 10px 0;
+  margin: 5px 0; /* Уменьшен margin */
   text-align: center;
   width: 100%;
 }
 
 @keyframes pulse {
   0%, 100% { opacity: 0.7; transform: scale(1); }
-  50% { opacity: 1; transform: scale(1.1); }
+  50% { opacity: 1; transform: scale(1.05); } /* Уменьшено scale */
 }
 
 /* Стили для формы обмена */
@@ -2007,6 +2007,22 @@ small {
   display: flex;
   flex-direction: column;
   align-items: center;
+  gap: 10px; /* Добавлен gap для формы, уменьшен */
+}
+
+.swap-box {
+  width: 100%;
+  margin-bottom: 10px; /* Если был margin, уменьшен */
+}
+
+.input-row {
+  display: flex;
+  gap: 10px; /* Уменьшен gap между input и select */
+}
+
+.swap-label {
+  margin-bottom: 5px; /* Уменьшен margin */
+  font-size: 0.9rem; /* Уменьшен размер */
 }
 
 /* Responsive adaptations */
@@ -2014,13 +2030,13 @@ small {
   .network-row {
     flex-direction: column;
     align-items: center;
-    gap: 20px;
+    gap: 10px; /* Уменьшен gap */
   }
 
   .swap-arrow-right {
-    font-size: 3rem;
-    margin: 10px 0;
-    transform: rotate(90deg); /* Поворот стрелки вниз на мобильных */
+    font-size: 2.5rem;
+    margin: 5px 0; /* Уменьшен margin */
+    transform: rotate(90deg);
   }
 
   .network-group {
@@ -2029,16 +2045,17 @@ small {
 
   .swap-card {
     width: 100%;
-    padding: 20px;
+    padding: 15px; /* Уменьшено padding */
     box-sizing: border-box;
   }
 
   .input-row {
     flex-direction: column;
+    gap: 5px; /* Уменьшен gap */
   }
 
   input[type="number"], .token-select {
     width: 100%;
-    margin-bottom: 10px;
+    margin-bottom: 5px; /* Уменьшен margin */
   }
 }
