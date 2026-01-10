@@ -1689,3 +1689,89 @@ small {
   font-size: 1rem;
   text-align: center;
 }
+
+/* Красивый селектор сетей */
+.network-selector {
+  margin-bottom: 40px;
+  text-align: center;
+}
+
+.network-selector label {
+  display: block;
+  margin-bottom: 12px;
+  color: #aaa;
+  font-size: 1.1rem;
+}
+
+.custom-select {
+  position: relative;
+  max-width: 400px;
+  margin: 0 auto;
+}
+
+.custom-select select {
+  width: 100%;
+  padding: 16px 50px 16px 20px;
+  background: rgba(0,0,0,0.4);
+  border: 1px solid rgba(0,255,157,0.3);
+  border-radius: 16px;
+  color: white;
+  font-size: 1.1rem;
+  appearance: none;
+  cursor: pointer;
+}
+
+.select-arrow {
+  position: absolute;
+  right: 20px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 0;
+  height: 0;
+  border-left: 8px solid transparent;
+  border-right: 8px solid transparent;
+  border-top: 10px solid #00ff9d;
+  pointer-events: none;
+}
+
+/* Маленький значок MetaMask */
+.metamask-icon.small {
+  width: 24px;
+  height: 24px;
+}
+
+/* Подключено + Выход */
+.connected-view {
+  display: flex;
+  gap: 15px;
+  justify-content: center;
+  align-items: center;
+}
+
+.connected-btn {
+  background: linear-gradient(90deg, #00ff9d, #00c4ff);
+  color: #000;
+  padding: 14px 40px;
+  border-radius: 50px;
+  font-weight: bold;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.disconnect-btn {
+  background: rgba(255,80,80,0.2);
+  border: 1px solid #ff5050;
+  color: #ff5050;
+  padding: 12px 24px;
+  border-radius: 50px;
+}
+
+/* Стрелка вниз */
+.swap-arrow {
+  font-size: 3rem;
+  color: #00ff9d;
+  text-align: center;
+  margin: 20px 0;
+  opacity: 0.8;
+}
