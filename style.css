@@ -1537,3 +1537,155 @@ small {
   margin-top: 15px;
   font-size: 0.95rem;
 }
+
+.swap-body {
+  background: linear-gradient(135deg, #0a0a14 0%, #141425 100%);
+  min-height: 100vh;
+}
+
+.swap-main {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 40px 20px;
+}
+
+.swap-card.glass-effect {
+  background: rgba(20,20,46,0.75);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(0,255,157,0.12);
+  border-radius: 28px;
+  padding: 50px 40px;
+  max-width: 680px;
+  width: 100%;
+  box-shadow: 0 30px 80px rgba(0,0,0,0.6);
+  text-align: center;
+}
+
+.swap-title {
+  font-size: 2.8rem;
+  margin-bottom: 50px;
+  color: #00ff9d;
+  text-shadow: 0 0 30px rgba(0,255,157,0.4);
+  font-weight: 700;
+}
+
+.wallet-connect {
+  margin-bottom: 50px;
+}
+
+.connect-btn {
+  background: linear-gradient(90deg, #00ff9d 0%, #00d4ff 100%);
+  color: #000;
+  font-weight: bold;
+  padding: 18px 40px;
+  border-radius: 60px;
+  font-size: 1.2rem;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin: 0 auto;
+  box-shadow: 0 0 40px rgba(0,255,157,0.35);
+  transition: all 0.3s;
+}
+
+.connect-btn:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 0 60px rgba(0,255,157,0.6);
+}
+
+.wallet-icon.small-icon {
+  width: 28px;
+  height: 28px;
+}
+
+.wallet-info {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 20px;
+  font-size: 1.3rem;
+  color: #aaa;
+  background: rgba(0,0,0,0.3);
+  padding: 12px 24px;
+  border-radius: 50px;
+}
+
+.swap-form {
+  display: flex;
+  flex-direction: column;
+  gap: 35px;
+}
+
+.swap-box {
+  background: rgba(0,0,0,0.4);
+  border-radius: 20px;
+  padding: 24px;
+  border: 1px solid rgba(255,255,255,0.08);
+  transition: all 0.3s;
+}
+
+.swap-box:hover {
+  border-color: rgba(0,255,157,0.3);
+  box-shadow: 0 0 30px rgba(0,255,157,0.15);
+}
+
+.swap-label {
+  color: #aaa;
+  font-size: 1rem;
+  margin-bottom: 12px;
+  display: block;
+}
+
+.swap-input {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+.swap-input input {
+  flex: 1;
+  background: #1a1a2e;
+  border: none;
+  border-radius: 14px;
+  padding: 18px;
+  color: white;
+  font-size: 1.6rem;
+  text-align: right;
+}
+
+.swap-input select {
+  background: #1a1a2e;
+  border: none;
+  border-radius: 14px;
+  padding: 18px;
+  color: white;
+  font-size: 1rem;
+  min-width: 120px;
+}
+
+.swap-arrow {
+  font-size: 3rem;
+  color: #00ff9d;
+  text-align: center;
+  margin: 10px 0;
+}
+
+.swap-button {
+  background: linear-gradient(90deg, #00ff9d, #00c4ff);
+  color: #000;
+  padding: 20px;
+  font-size: 1.4rem;
+  border-radius: 60px;
+  font-weight: bold;
+  margin-top: 30px;
+  box-shadow: 0 0 40px rgba(0,255,157,0.4);
+}
+
+.rate-info {
+  margin-top: 20px;
+  color: #aaa;
+  font-size: 1rem;
+  text-align: center;
+}
