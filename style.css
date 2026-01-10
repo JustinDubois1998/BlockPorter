@@ -1797,7 +1797,7 @@ small {
 .network-row {
   display: flex;
   justify-content: center;
-  align-items: center; /* Изменено для лучшего выравнивания по центру */
+  align-items: flex-end;
   gap: 40px;
   margin: 0 0 50px;
   flex-wrap: wrap;
@@ -1859,13 +1859,14 @@ small {
   transform: translateY(-50%) rotate(180deg);
 }
 
-/* Стрелка вправо между полями */
-.swap-arrow-right {
-  font-size: 2.5rem; /* Уменьшено для горизонтального макета */
+/* Стрелка вниз между полями */
+.swap-arrow-down {
+  font-size: 4rem;
   color: #00ff9d;
   text-shadow: 0 0 25px rgba(0,255,157,0.5);
   animation: pulse 2s infinite;
-  margin: 0 10px; /* Добавлены отступы для лучшей интеграции */
+  margin: 20px 0;
+  text-align: center;
 }
 
 @keyframes pulse {
@@ -1873,22 +1874,39 @@ small {
   50% { opacity: 1; transform: scale(1.1); }
 }
 
-/* Кнопка реверса */
-.swap-icon {
-  text-align: center;
-  margin: 10px 0;
-}
+/* Responsive adaptations */
+@media (max-width: 768px) {
+  .network-row {
+    flex-direction: column;
+    align-items: center;
+    gap: 20px;
+  }
 
-.reverse-btn {
-  background: transparent;
-  border: none;
-  color: #00ff9d;
-  font-size: 1.5rem;
-  cursor: pointer;
-  transition: transform 0.3s ease;
-}
+  .swap-arrow-down {
+    font-size: 3rem;
+    margin: 10px 0;
+  }
 
-.reverse-btn:hover {
-  transform: rotate(180deg);
-  text-shadow: 0 0 15px rgba(0,255,157,0.5);
+  .network-group {
+    min-width: 100%;
+  }
+
+  .swap-card {
+    width: 100%;
+    padding: 20px;
+    box-sizing: border-box;
+  }
+
+  .swap-form {
+    flex-direction: column;
+  }
+
+  .input-row {
+    flex-direction: column;
+  }
+
+  input[type="number"], .token-select {
+    width: 100%;
+    margin-bottom: 10px;
+  }
 }
