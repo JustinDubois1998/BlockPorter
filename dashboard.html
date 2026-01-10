@@ -28,7 +28,7 @@
 
       <!-- Кнопка подключения / Подключено + Выход -->
       <div class="wallet-section">
-        <button id="connect-wallet" class="btn connect-btn" style="display: block;">
+        <button id="connect-wallet" class="btn connect-btn">
           Подключить кошелёк
         </button>
 
@@ -42,12 +42,13 @@
         </div>
       </div>
 
-      <!-- Два селектора сетей + поля обмена -->
+      <!-- Форма обмена с двумя селекторами сетей -->
       <div class="swap-form">
         <!-- Отдаёте -->
         <div class="swap-box from-box">
           <div class="swap-label">Отдаёте</div>
-          
+
+          <!-- Селектор сети Отдаёте -->
           <div class="network-selector">
             <select id="from-chain" class="network-select">
               <option value="ethereum">Ethereum</option>
@@ -77,6 +78,7 @@
         <div class="swap-box to-box">
           <div class="swap-label">Получаете</div>
 
+          <!-- Селектор сети Получаете -->
           <div class="network-selector">
             <select id="to-chain" class="network-select">
               <option value="bsc">Binance Smart Chain</option>
@@ -116,7 +118,7 @@
     const disconnectBtn = document.getElementById('disconnect');
     const swapBtn = document.getElementById('swap-button');
 
-    // Показываем состояние при загрузке (если уже подключён)
+    // Проверка при загрузке
     if (localStorage.getItem('walletConnected') === 'true') {
       currentAccount = localStorage.getItem('walletAddress');
       connectBtn.style.display = 'none';
@@ -125,7 +127,7 @@
       swapBtn.disabled = false;
     }
 
-    // Подключение
+    // Подключение кошелька
     connectBtn.addEventListener('click', async () => {
       if (!window.ethereum) return alert('MetaMask не установлен');
 
@@ -144,7 +146,7 @@
       }
     });
 
-    // Нажатие на "Подключено" → показываем "Выход"
+    // Нажатие на "Подключено" → показ "Выход"
     connectedBtn.addEventListener('click', () => {
       disconnectBtn.style.display = disconnectBtn.style.display === 'inline-block' ? 'none' : 'inline-block';
     });
@@ -155,14 +157,14 @@
       location.reload();
     });
 
-    // Симуляция курса
+    // Симуляция курса (можно заменить на реальный API позже)
     document.getElementById('from-amount').addEventListener('input', e => {
       const val = parseFloat(e.target.value) || 0;
       document.getElementById('to-amount').value = (val * 0.98).toFixed(6);
       document.getElementById('rate-info').textContent = 'Примерный курс: 1 → 0.98 (комиссия ~2%)';
     });
 
-    // Обмен (симуляция)
+    // Обмен
     swapBtn.addEventListener('click', () => {
       if (!currentAccount) return alert('Подключите кошелёк');
       alert('Обмен выполнен (симуляция). Реальный бридж в разработке!');
