@@ -34,12 +34,12 @@
         </button>
 
         <div id="wallet-info" class="wallet-info" style="display:none;">
-          <span class="wallet-status">Подключено</span>
+          <span id="wallet-status" class="wallet-status">Подключено</span>
           <button id="disconnect" class="btn disconnect-btn">Выход</button>
         </div>
       </div>
 
-      <!-- Два селектора сети -->
+      <!-- Селекторы сетей -->
       <div class="network-row">
         <div class="network-group">
           <label>Сеть отдаёте</label>
@@ -56,8 +56,8 @@
           </div>
         </div>
 
-        <div class="swap-arrow-down">
-          <i class="fas fa-arrow-down"></i>
+        <div class="swap-arrow-right">
+          <i class="fas fa-arrow-right"></i>
         </div>
 
         <div class="network-group">
@@ -92,6 +92,10 @@
               <option>XRP</option>
             </select>
           </div>
+        </div>
+
+        <div class="swap-icon">
+          <button id="reverse-swap" class="reverse-btn"><i class="fas fa-exchange-alt"></i></button>
         </div>
 
         <div class="swap-box to-box">
@@ -157,6 +161,24 @@
       const amount = parseFloat(e.target.value) || 0;
       document.getElementById('to-amount').value = (amount * 0.98).toFixed(6);
       document.getElementById('rate-info').textContent = 'Примерный курс (с комиссией): 1 → 0.98';
+    });
+
+    // Реверс свопа
+    document.getElementById('reverse-swap').addEventListener('click', () => {
+      // Обмен цепочек
+      const fromChain = document.getElementById('from-chain').value;
+      const toChain = document.getElementById('to-chain').value;
+      document.getElementById('from-chain').value = toChain;
+      document.getElementById('to-chain').value = fromChain;
+
+      // Обмен токенов
+      const fromToken = document.getElementById('from-token').value;
+      const toToken = document.getElementById('to-token').value;
+      document.getElementById('from-token').value = toToken;
+      document.getElementById('to-token').value = fromToken;
+
+      // Перерасчет суммы
+      document.getElementById('from-amount').dispatchEvent(new Event('input'));
     });
 
     // Обмен
