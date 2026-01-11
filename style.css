@@ -2059,3 +2059,198 @@ small {
     margin-bottom: 5px; /* Уменьшен margin */
   }
 }
+
+/* Стили для секции кошелька */
+.wallet-section {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 30px;
+}
+
+.wallet-info {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  background: rgba(0,0,0,0.45);
+  border: 1px solid rgba(0,255,157,0.18);
+  border-radius: 16px;
+  padding: 12px 20px;
+  width: auto;
+}
+
+.wallet-status {
+  color: #00ff9d;
+  font-weight: bold;
+}
+
+.disconnect-btn {
+  background: transparent;
+  border: 1px solid #ff0000;
+  color: #ff0000;
+  padding: 8px 16px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  position: relative;
+  top: -2px; /* Приподнимаем кнопку вверх */
+}
+
+.disconnect-btn:hover {
+  background: #ff0000;
+  color: #fff;
+}
+
+/* Красивые селекторы сетей */
+.network-row {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
+  margin: 0 0 30px;
+  flex-wrap: wrap;
+}
+
+.network-group {
+  flex: 1;
+  min-width: 240px;
+  position: relative;
+}
+
+.network-group label {
+  position: absolute;
+  top: -10px;
+  left: 16px;
+  background: var(--bg);
+  padding: 0 8px;
+  color: #aaa;
+  font-size: 0.85rem;
+  pointer-events: none;
+}
+
+.custom-select {
+  position: relative;
+}
+
+.chain-selector {
+  width: 100%;
+  padding: 14px 40px 14px 16px;
+  background: rgba(0,0,0,0.45);
+  border: 1px solid rgba(0,255,157,0.18);
+  border-radius: 12px;
+  color: white;
+  font-size: 1rem;
+  appearance: none;
+  transition: all 0.3s ease;
+  cursor: pointer;
+}
+
+.chain-selector:hover,
+.chain-selector:focus {
+  border-color: #00ff9d;
+  box-shadow: 0 0 15px rgba(0,255,157,0.25);
+  transform: translateY(-1px);
+}
+
+.select-arrow {
+  position: absolute;
+  right: 16px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #00ff9d;
+  font-size: 0.9rem;
+  pointer-events: none;
+  transition: transform 0.3s;
+}
+
+.chain-selector:focus + .select-arrow {
+  transform: translateY(-50%) rotate(180deg);
+}
+
+/* Стрелка вправо между сетями */
+.swap-arrow-right {
+  font-size: 2rem;
+  color: #00ff9d;
+  text-shadow: 0 0 20px rgba(0,255,157,0.5);
+  animation: pulse 2s infinite;
+  margin: 0 5px;
+}
+
+/* Стрелка вниз между полями ввода */
+.swap-arrow-down {
+  font-size: 2rem;
+  color: #00ff9d;
+  text-shadow: 0 0 20px rgba(0,255,157,0.5);
+  animation: pulse 2s infinite;
+  margin: 5px 0;
+  text-align: center;
+  width: 100%;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 0.7; transform: scale(1); }
+  50% { opacity: 1; transform: scale(1.05); }
+}
+
+/* Стили для формы обмена */
+.swap-form {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+}
+
+.swap-box {
+  width: 100%;
+  margin-bottom: 10px;
+}
+
+.input-row {
+  display: flex;
+  gap: 10px;
+}
+
+.swap-label {
+  margin-bottom: 5px;
+  font-size: 0.9rem;
+}
+
+/* Responsive adaptations */
+@media (max-width: 768px) {
+  .network-row {
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .swap-arrow-right {
+    font-size: 2.5rem;
+    margin: 5px 0;
+    transform: rotate(90deg);
+  }
+
+  .network-group {
+    min-width: 100%;
+  }
+
+  .swap-card {
+    width: 100%;
+    padding: 15px;
+    box-sizing: border-box;
+  }
+
+  .input-row {
+    flex-direction: column;
+    gap: 5px;
+  }
+
+  input[type="number"], .token-select {
+    width: 100%;
+    margin-bottom: 5px;
+  }
+
+  .wallet-info {
+    flex-direction: row;
+    gap: 10px;
+    padding: 10px 15px;
+  }
+}
