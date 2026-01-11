@@ -130,6 +130,49 @@
 
   <script>
     let currentAccount = null;
+    const commission = 0.045; // 4.5%
+
+    const tokenToId = {
+      'ETH': 'ethereum',
+      'USDC': 'usd-coin',
+      'USDT': 'tether',
+      'MATIC': 'matic-network',
+      'BNB': 'binancecoin',
+      'TON': 'toncoin',
+      'XRP': 'ripple'
+    };
+
+    async function getPrice(token) {
+      const id = tokenToId[token];
+      if (!id) throw new Error('Invalid token');
+      const response = await fetch(`https://api.coingecko.com/api/v3/simple/price?ids=${id}&vs_currencies=usd`);
+      if (!response.ok) throw new Error('Failed to fetch price');
+      const data = await response.json();
+      return data[id].usd;
+    }
+
+    async function updateRate() {
+      const fromAmountInput = document.getElementById('from-amount');
+      const toAmountInput = document.getElementById('to-amount');
+      const rateInfo = document.getElementById('rate-info');
+      const fromToken = document.getElementById('from-token').value;
+      const toToken = document.getElementById('to-token').value;
+      const amount = parseFloat(fromAmountInput.value) || 0;
+
+      rateInfo.textContent = 'Курс обновляется...';
+
+      try {
+        const fromPrice = await getPrice(fromToken);
+        const toPrice = await getPrice(toToken);
+        const rate = fromPrice / toPrice;
+        const receivedAmount = amount * rate * (1 - commission);
+        toAmountInput.value = receivedAmount.toFixed(6);
+        rateInfo.textContent = `Примерный курс (с комиссией 4.5%): 1 ${fromToken} → ${(rate * (1 - commission)).toFixed(6)} ${toToken}`;
+      } catch (err) {
+        rateInfo.textContent = 'Ошибка получения курса: ' + err.message;
+        toAmountInput.value = '0.0';
+      }
+    }
 
     // Подключение / отключение
     document.getElementById('connect-wallet').addEventListener('click', async () => {
@@ -173,14 +216,14 @@
           localStorage.clear();
         }
       }
+      // Инициализация курса
+      updateRate();
     });
 
-    // Симуляция курса с комиссией 4.5%
-    document.getElementById('from-amount').addEventListener('input', e => {
-      const amount = parseFloat(e.target.value) || 0;
-      document.getElementById('to-amount').value = (amount * 0.955).toFixed(6);
-      document.getElementById('rate-info').textContent = 'Примерный курс (с комиссией 4.5%): 1 → 0.955';
-    });
+    // Обновление при изменении суммы или токенов
+    document.getElementById('from-amount').addEventListener('input', updateRate);
+    document.getElementById('from-token').addEventListener('change', updateRate);
+    document.getElementById('to-token').addEventListener('change', updateRate);
 
     // Показ поля адреса TON
     const toChainSelect = document.getElementById('to-chain');
