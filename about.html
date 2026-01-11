@@ -3,24 +3,117 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>BlockPorter - О проекте</title>
+  <title>BlockPorter — О нас</title>
   <link rel="stylesheet" href="style.css"/>
   <link rel="icon" href="logo.svg" type="image/svg+xml"/>
+  <!-- EmailJS (для отправки формы без сервера) -->
+  <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+  <script type="text/javascript">
+    (function(){
+      emailjs.init("YOUR_PUBLIC_KEY"); // ← Замени на свой Public Key из EmailJS
+    })();
+  </script>
 </head>
 <body>
-  <header><!-- Тот же header --></header>
-
-  <main class="container">
-    <h1>О BlockPorter</h1>
-    <p>BlockPorter — это децентрализованная платформа для кроссчейн обмена токенов без посредников.</p>
-    
-    <div class="features-grid">
-      <div>Поддержка Ethereum, BSC, Polygon, Optimism, Arbitrum</div>
-      <div>Non-custodial — ваши ключи, ваши активы</div>
-      <div>Низкие комиссии и высокая скорость</div>
+  <header class="header">
+    <div class="container">
+      <a href="index.html" class="logo">
+        <img src="logo.svg" alt="BlockPorter" height="40"/>
+      </a>
+      <nav class="nav">
+        <a href="index.html">Главная</a>
+        <a href="dashboard.html">Обмен</a>
+        <a href="about.html" class="active">О нас</a>
+        <span id="auth-status"><a href="auth.html">Войти</a></span>
+      </nav>
     </div>
+  </header>
 
-    <p>Проект в активной разработке. Присоединяйтесь к сообществу!</p>
+  <main class="about-main">
+    <section class="hero-about">
+      <div class="container">
+        <h1>BlockPorter</h1>
+        <p class="subtitle">Будущее кроссчейн-обмена</p>
+      </div>
+    </section>
+
+    <section class="about-content container">
+      <div class="about-card glass">
+        <h2>Кто мы</h2>
+        <p>
+          BlockPorter — это команда энтузиастов и профессионалов Web3, которые верят в децентрализованное будущее финансов.
+          Мы создали платформу, где любой человек может мгновенно обменивать активы между блокчейнами без посредников, бирж и KYC.
+        </p>
+        <p>
+          Наша миссия — сделать кроссчейн-обмен таким же простым, как перевод денег внутри одного банка, но при этом полностью децентрализованным и безопасным.
+        </p>
+      </div>
+
+      <div class="about-card glass">
+        <h2>Почему именно мы</h2>
+        <ul class="features-list">
+          <li><i class="fas fa-bolt"></i> Самые быстрые кроссчейн-транзакции</li>
+          <li><i class="fas fa-shield-alt"></i> Полная non-custodial модель — ваши ключи, ваши деньги</li>
+          <li><i class="fas fa-hand-holding-usd"></i> Минимальные комиссии благодаря умным бриджам</li>
+          <li><i class="fas fa-users"></i> Открытость и прозрачность — всё в смарт-контрактах</li>
+          <li><i class="fas fa-rocket"></i> Постоянное развитие: TON, Solana, Layer-2 и дальше</li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- Форма обратной связи -->
+    <section class="contact-section container">
+      <div class="contact-card glass">
+        <h2>Напишите нам</h2>
+        <p>Есть идеи, предложения или вопросы? Мы всегда открыты к обратной связи!</p>
+
+        <form id="contact-form">
+          <input type="text" name="name" placeholder="Ваше имя" required/>
+          <input type="email" name="email" placeholder="Ваш email" required/>
+          <textarea name="message" placeholder="Ваше сообщение..." rows="6" required></textarea>
+
+          <button type="submit" class="btn primary-btn">Отправить сообщение</button>
+        </form>
+
+        <p id="form-status" class="form-status"></p>
+      </div>
+    </section>
   </main>
+
+  <script>
+    // EmailJS — настройка формы (замени на свои данные)
+    document.getElementById('contact-form').addEventListener('submit', function(e) {
+      e.preventDefault();
+
+      const status = document.getElementById('form-status');
+      status.textContent = 'Отправка...';
+
+      emailjs.sendForm('YOUR_SERVICE_ID', 'YOUR_TEMPLATE_ID', this)
+        .then(() => {
+          status.textContent = 'Сообщение успешно отправлено! Спасибо!';
+          status.style.color = '#00ff9d';
+          this.reset();
+        }, (err) => {
+          status.textContent = 'Ошибка отправки: ' + err.text;
+          status.style.color = '#ff6b6b';
+        });
+    });
+
+    // Обновление статуса авторизации в шапке (как на других страницах)
+    function updateAuthStatus() {
+      const status = document.getElementById('auth-status');
+      const connected = localStorage.getItem('walletConnected') === 'true';
+      const addr = localStorage.getItem('walletAddress');
+
+      if (connected && addr) {
+        const short = addr.slice(0,6) + '...' + addr.slice(-4);
+        status.innerHTML = `<a href="profile.html">${short}</a> <button onclick="localStorage.clear(); location.reload();">Выйти</button>`;
+      } else {
+        status.innerHTML = '<a href="auth.html">Войти</a>';
+      }
+    }
+
+    updateAuthStatus();
+  </script>
 </body>
 </html>
