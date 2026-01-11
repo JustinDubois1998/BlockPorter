@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>BlockPorter — Успех</title>
+  <title>BlockPorter — Подтверждение обмена</title>
   <link rel="stylesheet" href="style.css"/>
   <link rel="icon" href="logo.svg" type="image/svg+xml"/>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
@@ -25,10 +25,105 @@
 
   <main class="swap-main">
     <div class="swap-card glass-effect">
-      <h1 class="swap-title">Обмен выполнен успешно!</h1>
-      <p class="success-message">Ваши средства были переведены. Проверьте ваш кошелёк.</p>
-      <a href="dashboard.html" class="btn primary-btn">Вернуться к обмену</a>
+      <h1 class="swap-title">Подтверждение обмена</h1>
+
+      <div class="swap-details">
+        <p><strong>Сеть отправления:</strong> <span id="from-chain-display"></span></p>
+        <p><strong>Сеть получения:</strong> <span id="to-chain-display"></span></p>
+        <p><strong>Токен отправления:</strong> <span id="from-token-display"></span></p>
+        <p><strong>Токен получения:</strong> <span id="to-token-display"></span></p>
+        <p><strong>Сумма отправления:</strong> <span id="from-amount-display"></span></p>
+        <p><strong>Сумма получения (примерно):</strong> <span id="to-amount-display"></span></p>
+        <p id="ton-address-display" style="display:none;"><strong>Адрес TON:</strong> <span id="ton-address-value"></span></p>
+      </div>
+
+      <div class="terms-section">
+        <input type="checkbox" id="terms-checkbox">
+        <label for="terms-checkbox">Я согласен с условиями обмена</label>
+      </div>
+
+      <button id="confirm-swap" class="btn primary-btn" disabled>
+        Подтвердить обмен
+      </button>
     </div>
   </main>
+
+  <script>
+    const chainIds = {
+      'ethereum': '0x1',
+      'bsc': '0x38',
+      'polygon': '0x89',
+      'optimism': '0xa',
+      'arbitrum': '0xa4b1',
+      'ton': null // TON не поддерживается MetaMask
+    };
+
+    const nativeTokens = {
+      'ethereum': 'ETH',
+      'bsc': 'BNB',
+      'polygon': 'MATIC',
+      'optimism': 'ETH',
+      'arbitrum': 'ETH'
+    };
+
+    const swapData = JSON.parse(localStorage.getItem('swapData'));
+    if (swapData) {
+      document.getElementById('from-chain-display').textContent = swapData.fromChain;
+      document.getElementById('to-chain-display').textContent = swapData.toChain;
+      document.getElementById('from-token-display').textContent = swapData.fromToken;
+      document.getElementById('to-token-display').textContent = swapData.toToken;
+      document.getElementById('from-amount-display').textContent = swapData.fromAmount;
+      document.getElementById('to-amount-display').textContent = swapData.toAmount;
+      if (swapData.tonAddress) {
+        document.getElementById('ton-address-display').style.display = 'block';
+        document.getElementById('ton-address-value').textContent = swapData.tonAddress;
+      }
+    }
+
+    document.getElementById('terms-checkbox').addEventListener('change', (e) => {
+      document.getElementById('confirm-swap').disabled = !e.target.checked;
+    });
+
+    document.getElementById('confirm-swap').addEventListener('click', async () => {
+      if (!window.ethereum) return alert('MetaMask не установлен');
+
+      const fromChain = swapData.fromChain;
+      const chainId = chainIds[fromChain];
+      if (!chainId) return alert('Сеть отправления не поддерживается MetaMask');
+
+      try {
+        // Переключение сети
+        await window.ethereum.request({
+          method: 'wallet_switchEthereumChain',
+          params: [{ chainId }],
+        });
+
+        const isNative = nativeTokens[fromChain] === swapData.fromToken;
+        if (!isNative) {
+          return alert('Обмен ERC20 токенов - симуляция. Реальная реализация требует approve и transfer.');
+        }
+
+        // Конвертация суммы в wei (предполагая 18 decimals)
+        const amountInWei = (parseFloat(swapData.fromAmount) * 10**18).toString(16);
+
+        // Отправка транзакции
+        const txHash = await window.ethereum.request({
+          method: 'eth_sendTransaction',
+          params: [{
+            from: localStorage.getItem('walletAddress'),
+            to: '0xf77a1a27da4b74ff7be6535d76dbc90f6f5330c4',
+            value: `0x${amountInWei}`,
+          }],
+        });
+
+        alert(`Транзакция отправлена: ${txHash}`);
+        // После успеха очистить данные и перейти обратно или на success
+        localStorage.removeItem('swapData');
+        window.location.href = 'dashboard.html';
+      } catch (err) {
+        alert('Ошибка: ' + err.message);
+      }
+    });
+  </script>
 </body>
 </html>
