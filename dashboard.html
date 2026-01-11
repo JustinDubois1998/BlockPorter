@@ -160,14 +160,4 @@
     document.getElementById('from-amount').addEventListener('input', e => {
       const amount = parseFloat(e.target.value) || 0;
       document.getElementById('to-amount').value = (amount * 0.98).toFixed(6);
-      document.getElementById('rate-info').textContent = 'Примерный курс (с комиссией): 1 → 0.98';
-    });
-
-    // Обмен
-    document.getElementById('swap-button').addEventListener('click', () => {
-      if (!currentAccount) return alert('Подключите кошелёк');
-      alert('Обмен выполнен (симуляция). Реальный кроссчейн в разработке!');
-    });
-  </script>
-</body>
-</html>
+      document.getElementById('rate-info').textContent = 'Примерный курс (с комиссией):
