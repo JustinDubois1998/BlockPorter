@@ -6,11 +6,11 @@
   <title>BlockPorter — О нас</title>
   <link rel="stylesheet" href="style.css"/>
   <link rel="icon" href="logo.svg" type="image/svg+xml"/>
-  <!-- EmailJS (для отправки формы без сервера) -->
+  <!-- EmailJS (замени ключи на свои) -->
   <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
   <script type="text/javascript">
     (function(){
-      emailjs.init("YOUR_PUBLIC_KEY"); // ← Замени на свой Public Key из EmailJS
+      emailjs.init("YOUR_PUBLIC_KEY"); // ← Твой Public Key из EmailJS
     })();
   </script>
 </head>
@@ -29,77 +29,90 @@
     </div>
   </header>
 
-  <main class="about-main">
+  <main class="about-page">
     <section class="hero-about">
       <div class="container">
         <h1>BlockPorter</h1>
-        <p class="subtitle">Будущее кроссчейн-обмена</p>
+        <p class="hero-subtitle">Будущее кроссчейн-обмена</p>
       </div>
     </section>
 
-    <section class="about-content container">
-      <div class="about-card glass">
-        <h2>Кто мы</h2>
-        <p>
-          BlockPorter — это команда энтузиастов и профессионалов Web3, которые верят в децентрализованное будущее финансов.
-          Мы создали платформу, где любой человек может мгновенно обменивать активы между блокчейнами без посредников, бирж и KYC.
-        </p>
-        <p>
-          Наша миссия — сделать кроссчейн-обмен таким же простым, как перевод денег внутри одного банка, но при этом полностью децентрализованным и безопасным.
-        </p>
-      </div>
+    <section class="about-section container">
+      <div class="about-grid">
+        <div class="about-card glass">
+          <h2>Кто мы</h2>
+          <p>
+            BlockPorter — это команда Web3-энтузиастов и разработчиков, которые создают децентрализованное будущее финансов.  
+            Мы построили платформу, где любой может мгновенно обменивать токены между блокчейнами без посредников, бирж и KYC.
+          </p>
+          <p>
+            Наша цель — сделать кроссчейн-обмен таким же простым и быстрым, как перевод внутри одного приложения банка, но при этом полностью безопасным и децентрализованным.
+          </p>
+        </div>
 
-      <div class="about-card glass">
-        <h2>Почему именно мы</h2>
-        <ul class="features-list">
-          <li><i class="fas fa-bolt"></i> Самые быстрые кроссчейн-транзакции</li>
-          <li><i class="fas fa-shield-alt"></i> Полная non-custodial модель — ваши ключи, ваши деньги</li>
-          <li><i class="fas fa-hand-holding-usd"></i> Минимальные комиссии благодаря умным бриджам</li>
-          <li><i class="fas fa-users"></i> Открытость и прозрачность — всё в смарт-контрактах</li>
-          <li><i class="fas fa-rocket"></i> Постоянное развитие: TON, Solana, Layer-2 и дальше</li>
-        </ul>
+        <div class="about-card glass">
+          <h2>Наши преимущества</h2>
+          <ul class="advantages">
+            <li><span class="icon"><i class="fas fa-rocket"></i></span> Самые быстрые транзакции между цепями</li>
+            <li><span class="icon"><i class="fas fa-shield-alt"></i></span> Полная non-custodial модель — ваши ключи, ваши активы</li>
+            <li><span class="icon"><i class="fas fa-hand-holding-usd"></i></span> Минимальные комиссии и лучшие курсы</li>
+            <li><span class="icon"><i class="fas fa-code"></i></span> Всё в смарт-контрактах — открытость и прозрачность</li>
+            <li><span class="icon"><i class="fas fa-chart-line"></i></span> Постоянное развитие: TON, Solana, Layer-2 и дальше</li>
+          </ul>
+        </div>
       </div>
     </section>
 
     <!-- Форма обратной связи -->
-    <section class="contact-section container">
+    <section class="contact container">
       <div class="contact-card glass">
         <h2>Напишите нам</h2>
-        <p>Есть идеи, предложения или вопросы? Мы всегда открыты к обратной связи!</p>
+        <p>Есть идеи, предложения или вопросы? Мы всегда открыты к диалогу!</p>
 
-        <form id="contact-form">
-          <input type="text" name="name" placeholder="Ваше имя" required/>
-          <input type="email" name="email" placeholder="Ваш email" required/>
-          <textarea name="message" placeholder="Ваше сообщение..." rows="6" required></textarea>
+        <form id="contact-form" class="contact-form">
+          <div class="form-group">
+            <i class="fas fa-user"></i>
+            <input type="text" name="name" placeholder="Ваше имя" required/>
+          </div>
+          <div class="form-group">
+            <i class="fas fa-envelope"></i>
+            <input type="email" name="email" placeholder="Ваш email" required/>
+          </div>
+          <div class="form-group">
+            <i class="fas fa-comment-alt"></i>
+            <textarea name="message" placeholder="Ваше сообщение..." rows="5" required></textarea>
+          </div>
 
-          <button type="submit" class="btn primary-btn">Отправить сообщение</button>
+          <button type="submit" class="btn submit-btn">
+            Отправить сообщение
+          </button>
         </form>
 
-        <p id="form-status" class="form-status"></p>
+        <p id="form-status" class="status-message"></p>
       </div>
     </section>
   </main>
 
   <script>
-    // EmailJS — настройка формы (замени на свои данные)
+    // EmailJS — отправка формы (замени на свои ключи!)
     document.getElementById('contact-form').addEventListener('submit', function(e) {
       e.preventDefault();
-
       const status = document.getElementById('form-status');
       status.textContent = 'Отправка...';
+      status.className = 'status-message sending';
 
       emailjs.sendForm('YOUR_SERVICE_ID', 'YOUR_TEMPLATE_ID', this)
         .then(() => {
           status.textContent = 'Сообщение успешно отправлено! Спасибо!';
-          status.style.color = '#00ff9d';
+          status.className = 'status-message success';
           this.reset();
         }, (err) => {
-          status.textContent = 'Ошибка отправки: ' + err.text;
-          status.style.color = '#ff6b6b';
+          status.textContent = 'Ошибка: ' + err.text;
+          status.className = 'status-message error';
         });
     });
 
-    // Обновление статуса авторизации в шапке (как на других страницах)
+    // Обновление статуса авторизации
     function updateAuthStatus() {
       const status = document.getElementById('auth-status');
       const connected = localStorage.getItem('walletConnected') === 'true';
