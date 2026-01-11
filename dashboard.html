@@ -132,6 +132,8 @@
       try {
         const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
         currentAccount = accounts[0];
+        localStorage.setItem('walletConnected', 'true');
+        localStorage.setItem('walletAddress', currentAccount);
         document.getElementById('wallet-info').style.display = 'flex';
         document.getElementById('connect-wallet').style.display = 'none';
         document.getElementById('swap-button').disabled = false;
