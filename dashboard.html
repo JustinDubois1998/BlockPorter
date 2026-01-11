@@ -243,10 +243,21 @@
       }
     });
 
-    // Обмен с перенаправлением
+    // Обмен с сохранением данных и перенаправлением
     document.getElementById('swap-button').addEventListener('click', () => {
       if (!currentAccount) return alert('Подключите кошелёк');
-      // Симуляция обмена
+
+      const swapData = {
+        fromChain: document.getElementById('from-chain').value,
+        toChain: document.getElementById('to-chain').value,
+        fromToken: document.getElementById('from-token').value,
+        toToken: document.getElementById('to-token').value,
+        fromAmount: document.getElementById('from-amount').value,
+        toAmount: document.getElementById('to-amount').value,
+        tonAddress: document.getElementById('ton-address').value || ''
+      };
+
+      localStorage.setItem('swapData', JSON.stringify(swapData));
       window.location.href = 'success.html';
     });
   </script>
