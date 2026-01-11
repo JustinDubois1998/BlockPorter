@@ -2292,3 +2292,30 @@ small {
     padding: 10px 15px;
   }
 }
+
+/* Стили для страницы подтверждения */
+.swap-details {
+  text-align: left;
+  color: #fff;
+  margin-bottom: 20px;
+}
+
+.swap-details p {
+  margin: 5px 0;
+}
+
+.swap-details strong {
+  color: #00ff9d;
+}
+
+.terms-section {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 20px;
+  color: #aaa;
+}
+
+.terms-section input[type="checkbox"] {
+  accent-color: #00ff9d;
+}
