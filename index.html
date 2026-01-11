@@ -14,33 +14,13 @@
       <a href="index.html" class="logo">
         <img src="logo.svg" alt="BlockPorter" height="40"/>
       </a>
-
-      <!-- Десктопное меню -->
-      <nav class="nav desktop-nav">
+      <nav class="nav">
         <a href="index.html">Главная</a>
         <a href="dashboard.html">Обмен</a>
         <a href="about.html">О проекте</a>
-        <a href="profile.html">Профиль</a>
         <span id="auth-status"><a href="auth.html">Войти</a></span>
       </nav>
-
-      <!-- Бургер для мобильных -->
-      <button class="burger-menu" id="burger">
-        <span></span>
-        <span></span>
-        <span></span>
-      </button>
     </div>
-
-    <!-- Выдвижное мобильное меню -->
-    <nav class="mobile-menu" id="mobile-menu">
-      <button class="close-menu" id="close-menu">×</button>
-      <a href="index.html">Главная</a>
-      <a href="dashboard.html">Обмен</a>
-      <a href="about.html">О проекте</a>
-      <a href="profile.html">Профиль</a>
-      <span id="auth-status-mobile"><a href="auth.html">Войти</a></span>
-    </nav>
   </header>
 
   <main>
@@ -53,12 +33,12 @@
         <div class="hero-explanation">
           <h2>Что такое кроссчейн-обмен?</h2>
           <p>
-            Кроссчейн-обмен — это технология, позволяющая мгновенно и без посредников перемещать ваши активы (токены, стейблкоины, NFT) между разными блокчейнами.  
-            Например: вы отправляете ETH с Ethereum и получаете USDT на Binance Smart Chain, Polygon, TON или Solana.
+            Кроссчейн-обмен — это способ мгновенно и без посредников перемещать свои активы (токены, стейблкоины, NFT) между разными блокчейнами.  
+            Например: вы отправляете ETH с Ethereum и получаете USDT на Binance Smart Chain или TON.
           </p>
           <p>
-            Всё происходит полностью децентрализовано: вы не доверяете свои средства бирже или третьей стороне.  
-            Ключи остаются у вас, нет KYC, нет регистрации — только ваш кошелёк и несколько кликов.
+            Всё происходит децентрализовано: вы не отдаёте свои деньги бирже, ключи остаются у вас.
+            Никаких регистраций, KYC и долгих ожиданий — только кошелёк и несколько кликов.
           </p>
         </div>
 
@@ -71,7 +51,7 @@
       <div class="feature-card">
         <i class="fas fa-bolt"></i>
         <h3>Мгновенно</h3>
-        <p>Обмен за секунды, без долгого ожидания</p>
+        <p>Обмен за секунды, без долгого ожидания подтверждений</p>
       </div>
       <div class="feature-card">
         <i class="fas fa-shield-alt"></i>
@@ -87,38 +67,21 @@
   </main>
 
   <script>
-    // Бургер-меню
-    const burger = document.getElementById('burger');
-    const mobileMenu = document.getElementById('mobile-menu');
-    const closeMenu = document.getElementById('close-menu');
-
-    burger.addEventListener('click', () => mobileMenu.classList.add('active'));
-    closeMenu.addEventListener('click', () => mobileMenu.classList.remove('active'));
-
-    document.addEventListener('click', e => {
-      if (!mobileMenu.contains(e.target) && !burger.contains(e.target)) {
-        mobileMenu.classList.remove('active');
-      }
-    });
-
-    // Обновление статуса авторизации (десктоп + мобильное)
+    // Обновление статуса авторизации в шапке
     function updateAuthStatus() {
       const status = document.getElementById('auth-status');
-      const statusMobile = document.getElementById('auth-status-mobile');
       const connected = localStorage.getItem('walletConnected') === 'true';
       const addr = localStorage.getItem('walletAddress');
 
-      let content = '<a href="auth.html">Войти</a>';
       if (connected && addr) {
         const short = addr.slice(0,6) + '...' + addr.slice(-4);
-        content = `
+        status.innerHTML = `
           <a href="profile.html">${short}</a>
           <button onclick="localStorage.clear(); location.reload();" style="margin-left:12px; background:none;border:none;color:#ff6b6b;cursor:pointer;">Выйти</button>
         `;
+      } else {
+        status.innerHTML = '<a href="auth.html">Войти</a>';
       }
-
-      if (status) status.innerHTML = content;
-      if (statusMobile) statusMobile.innerHTML = content;
     }
 
     updateAuthStatus();
