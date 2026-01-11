@@ -113,10 +113,16 @@
           </div>
         </div>
 
+        <div id="ton-address-container" class="ton-address-container" style="display:none;">
+          <label for="ton-address">Адрес кошелька TON</label>
+          <input type="text" id="ton-address" placeholder="Введите адрес кошелька TON"/>
+        </div>
+
         <button id="swap-button" class="btn primary-btn" disabled>
           Обменять
         </button>
 
+        <div class="commission-info">Комиссия платформы: 4.5%</div>
         <div id="rate-info" class="rate-info">Курс обновляется...</div>
       </div>
     </div>
@@ -151,24 +157,46 @@
     });
 
     // Проверка при загрузке
-    if (localStorage.getItem('walletConnected') === 'true') {
-      currentAccount = localStorage.getItem('walletAddress');
-      document.getElementById('wallet-info').style.display = 'flex';
-      document.getElementById('connect-wallet').style.display = 'none';
-      document.getElementById('swap-button').disabled = false;
-    }
-
-    // Симуляция курса
-    document.getElementById('from-amount').addEventListener('input', e => {
-      const amount = parseFloat(e.target.value) || 0;
-      document.getElementById('to-amount').value = (amount * 0.98).toFixed(6);
-      document.getElementById('rate-info').textContent = 'Примерный курс (с комиссией): 1 → 0.98';
+    window.addEventListener('load', async () => {
+      if (localStorage.getItem('walletConnected') === 'true' && window.ethereum) {
+        try {
+          const accounts = await window.ethereum.request({ method: 'eth_accounts' });
+          if (accounts.length > 0) {
+            currentAccount = accounts[0];
+            document.getElementById('wallet-info').style.display = 'flex';
+            document.getElementById('connect-wallet').style.display = 'none';
+            document.getElementById('swap-button').disabled = false;
+          } else {
+            localStorage.clear();
+          }
+        } catch (err) {
+          localStorage.clear();
+        }
+      }
     });
 
-    // Обмен
+    // Симуляция курса с комиссией 4.5%
+    document.getElementById('from-amount').addEventListener('input', e => {
+      const amount = parseFloat(e.target.value) || 0;
+      document.getElementById('to-amount').value = (amount * 0.955).toFixed(6);
+      document.getElementById('rate-info').textContent = 'Примерный курс (с комиссией 4.5%): 1 → 0.955';
+    });
+
+    // Показ поля адреса TON
+    const toChainSelect = document.getElementById('to-chain');
+    toChainSelect.addEventListener('change', () => {
+      if (toChainSelect.value === 'ton') {
+        document.getElementById('ton-address-container').style.display = 'block';
+      } else {
+        document.getElementById('ton-address-container').style.display = 'none';
+      }
+    });
+
+    // Обмен с перенаправлением
     document.getElementById('swap-button').addEventListener('click', () => {
       if (!currentAccount) return alert('Подключите кошелёк');
-      alert('Обмен выполнен (симуляция). Реальный кроссчейн в разработке!');
+      // Симуляция обмена
+      window.location.href = 'success.html';
     });
   </script>
 </body>
