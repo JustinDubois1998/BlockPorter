@@ -105,5 +105,47 @@
 
     updateAuthStatus();
   </script>
+  <script>
+  const burger = document.getElementById('burger');
+  const mobileMenu = document.getElementById('mobile-menu');
+  const closeMenu = document.getElementById('close-menu');
+
+  burger.addEventListener('click', () => {
+    mobileMenu.classList.add('active');
+  });
+
+  closeMenu.addEventListener('click', () => {
+    mobileMenu.classList.remove('active');
+  });
+
+  // Закрытие по клику вне меню
+  document.addEventListener('click', e => {
+    if (!mobileMenu.contains(e.target) && !burger.contains(e.target)) {
+      mobileMenu.classList.remove('active');
+    }
+  });
+
+  // Обновление статуса авторизации (и для мобильного меню)
+  function updateAuthStatus() {
+    const status = document.getElementById('auth-status');
+    const statusMobile = document.getElementById('auth-status-mobile');
+    const connected = localStorage.getItem('walletConnected') === 'true';
+    const addr = localStorage.getItem('walletAddress');
+
+    let content = '<a href="auth.html">Войти</a>';
+    if (connected && addr) {
+      const short = addr.slice(0,6) + '...' + addr.slice(-4);
+      content = `
+        <a href="profile.html">${short}</a>
+        <button onclick="localStorage.clear(); location.reload();">Выйти</button>
+      `;
+    }
+
+    if (status) status.innerHTML = content;
+    if (statusMobile) statusMobile.innerHTML = content;
+  }
+
+  updateAuthStatus();
+</script>
 </body>
 </html>
