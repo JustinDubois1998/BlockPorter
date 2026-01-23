@@ -2804,3 +2804,110 @@ small {
 
 .status-message.success { color: #00ff9d; }
 .status-message.error { color: #ff6b6b; }
+
+/* Полукруг справа с биржами */
+.hero-section {
+  position: relative;
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  padding: 120px 20px 80px;
+  overflow: hidden;
+  background: linear-gradient(135deg, #0a0a14 0%, #141425 100%);
+}
+
+.hero-content {
+  max-width: 50%;
+  z-index: 2;
+}
+
+.hero h1 {
+  font-size: 6rem;
+  color: #00ff9d;
+  margin-bottom: 20px;
+  text-shadow: 0 0 50px rgba(0,255,157,0.4);
+}
+
+.hero-subtitle {
+  font-size: 2rem;
+  color: #ddd;
+  margin-bottom: 50px;
+}
+
+/* Зелёный полукруг справа */
+.chains-circle {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 60%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.circle-bg {
+  position: absolute;
+  top: -20%;
+  right: -30%;
+  width: 120%;
+  height: 140%;
+  background: radial-gradient(circle at 70% 30%, rgba(0,255,157,0.12) 0%, transparent 60%);
+  border-radius: 50%;
+}
+
+.chain-logos {
+  position: absolute;
+  top: 50%;
+  right: 10%;
+  transform: translateY(-50%);
+  display: flex;
+  flex-direction: column;
+  gap: 30px;
+}
+
+.chain-item {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  background: var(--color);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 0 30px var(--color);
+  transition: all 0.4s;
+  animation: float 6s ease-in-out infinite;
+  animation-delay: calc(var(--i) * 0.5s);
+}
+
+.chain-item img {
+  width: 50%;
+  height: 50%;
+  filter: brightness(1.2);
+}
+
+.chain-item:hover {
+  transform: scale(1.2) rotate(10deg);
+  box-shadow: 0 0 50px var(--color);
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-20px); }
+}
+
+/* Адаптивность */
+@media (max-width: 1200px) {
+  .chains-circle { width: 50%; right: -10%; }
+  .chain-logos { right: 5%; gap: 20px; }
+  .chain-item { width: 70px; height: 70px; }
+}
+
+@media (max-width: 992px) {
+  .hero-content { max-width: 100%; text-align: center; }
+  .chains-circle { display: none; } /* на мобильных убираем полукруг, чтобы не мешал */
+}
+
+@media (max-width: 768px) {
+  .hero h1 { font-size: 4rem; }
+  .hero-subtitle { font-size: 1.5rem; }
+}
